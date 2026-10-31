@@ -8,7 +8,7 @@ import httpx
 from fastapi import HTTPException
 from pydantic import Field, model_validator
 
-from . import providers, images
+from . import providers, images, backgrounds
 from .schemas import Model, SceneNode, Pack
 
 
@@ -146,7 +146,7 @@ async def lesson(request: LessonRequest):
 
 async def background(description: str):
     await moderate(description)
-    digest = hashlib.sha256(description.strip().lower().encode()).hexdigest()[:40]
+    digest = hashlib.sha256(('blur6-v1:'+description.strip().lower()).encode()).hexdigest()[:40]
     asset = "i_" + digest
     path = images.image_path(asset)
     async with images._lock:
@@ -155,6 +155,6 @@ async def background(description: str):
             content = await images._call_openai("Empty Korean everyday location, no people, no text, no logos. Soft 2.5D game environment, portrait framing with open central foreground. " + description, "background:" + digest, None, background='opaque')
             path.parent.mkdir(parents=True, exist_ok=True)
             temp = path.with_suffix(".tmp")
-            temp.write_bytes(content[0] if isinstance(content, tuple) else content)
+            temp.write_bytes(await backgrounds.blur(content[0] if isinstance(content, tuple) else content))
             temp.replace(path)
     return {"assetId": asset}
