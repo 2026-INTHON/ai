@@ -10,5 +10,8 @@ class ReportTests(unittest.TestCase):
         request=ReportRequest(language='en',context={'pack':'ko'},nodes=[{'nodeId':'n1'}],recordedResult={'score':100})
         with patch('malo_ai.providers.json_completion',new_callable=AsyncMock,return_value=(draft,'test')),patch('malo_ai.reports.moderate',new_callable=AsyncMock):
             self.assertEqual(asyncio.run(generate(request))['report']['headline'],'Clear request')
+            request.language='ja'
+            with self.assertRaises(HTTPException):asyncio.run(generate(request))
+            request.language='en'
             request.nodes=[{'nodeId':'invented'}]
             with self.assertRaises(HTTPException):asyncio.run(generate(request))
