@@ -157,7 +157,9 @@ class SynthesisRequest(Model):
     text: str = Field(min_length=1, max_length=1400)
     pack: Pack = "ko"
     characterId: str = Field(default="professor", max_length=60)
+    personalityId: str = Field(default="calm", max_length=60)
     emotion: Emotion = "neutral"
+    reaction: str | None = Field(default=None, max_length=60)
     speed: float = Field(default=1, ge=0.5, le=1.5)
 
 
