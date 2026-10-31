@@ -93,6 +93,7 @@ class ImageOption(Model):
     label: str = Field(default='',max_length=200)
     reaction: str = Field(default='',max_length=100)
     pose: str = Field(default='',max_length=100)
+    endingPreferred: bool = False
     useWhen: str = Field(default='',max_length=500)
     tags: list[str] = Field(default_factory=list,max_length=20)
 
@@ -100,6 +101,7 @@ class ImageOption(Model):
 class EvaluationRequest(Model):
     mode: Literal["mock", "live"] = "mock"
     imageOptions: list[ImageOption] = Field(default_factory=list,max_length=32)
+    livesRemaining: int = Field(default=3,ge=1,le=3)
     pack: Pack
     characterId: str = Field(min_length=1, max_length=60)
     personalityId: str = Field(min_length=1, max_length=60)
