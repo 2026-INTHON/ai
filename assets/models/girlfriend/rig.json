@@ -3,7 +3,8 @@
   "name": "서윤",
   "role": "여자친구",
   "height": 1.65,
-  "modelUrl": "./girlfriend/girlfriend.glb",
+  "modelUrl": "./girlfriend/girlfriend.glb?v=25203388da04",
+  "modelSha256": "25203388da041f33843c32a5b7bc52e5b40706241e5c94da4a189d4ca9a8285e",
   "canonicalUrl": "./girlfriend/canonical.png",
   "view": "front-2.5d",
   "maxYawDegrees": 8,
@@ -33,8 +34,8 @@
   ],
   "sourceIdentityHash": "2502ceaa4c38a6d37922909aa64dc79f8067569ce0764c9bb78cc09c7fea2368",
   "vertices": 14973,
-  "triangles": 22258,
-  "bytes": 3826312,
+  "triangles": 22374,
+  "bytes": 3827536,
   "customization": {
     "hair": [
       "original",

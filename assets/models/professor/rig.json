@@ -3,7 +3,8 @@
   "name": "김 교수",
   "role": "교수님",
   "height": 1.7,
-  "modelUrl": "./professor/professor.glb",
+  "modelUrl": "./professor/professor.glb?v=7125ba1af4aa",
+  "modelSha256": "7125ba1af4aac3ebc8897823075e5e0509fd3a9600466dbff84f576a24af5a5f",
   "canonicalUrl": "./professor/canonical.png",
   "view": "front-2.5d",
   "maxYawDegrees": 8,
@@ -33,8 +34,8 @@
   ],
   "sourceIdentityHash": "be9a09cd700e7ba5cec45b061eb1126d9a91a6db1674e349c5c58770108204e5",
   "vertices": 21244,
-  "triangles": 28698,
-  "bytes": 5079348,
+  "triangles": 28806,
+  "bytes": 5081000,
   "customization": {
     "hair": [
       "original",

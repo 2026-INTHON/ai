@@ -48,7 +48,7 @@ const scene=new THREE.Scene();const camera=new THREE.OrthographicCamera(-.8,.8,1
 const controls=new OrbitControls(camera,renderer.domElement);controls.target.set(0,.9,0);controls.enablePan=false;controls.enableDamping=true;controls.minAzimuthAngle=-8*Math.PI/180;controls.maxAzimuthAngle=8*Math.PI/180;controls.minPolarAngle=Math.PI/2-.035;controls.maxPolarAngle=Math.PI/2+.035;controls.minZoom=.85;controls.maxZoom=2.6;
 const loader=new GLTFLoader(),cache=new Map();let current=null,mixer=null,action=null,activeMotion='idle',exporting=false,last=performance.now(),timer=0,loadVersion=0;
 const labels={idle:'호흡 · 눈 깜빡임',talk:'말하기',happy:'기쁨',confused:'갸웃',sad:'서운함',angry:'불만',nod:'끄덕이기',shake:'고개 흔들기',greeting:'인사하기'};
-const catalog=await fetch('./catalog.json').then(r=>r.json());
+const catalog=await fetch('./catalog.json',{cache:'no-cache'}).then(r=>r.json());
 const params=new URLSearchParams(location.search),embed=params.get('embed')==='1';
 if(embed){document.head.insertAdjacentHTML('beforeend','<style>body{background:transparent;overflow:hidden}.shell{padding:0;max-width:none}header,.panel,.caption,.stage-meta,.stage-footer{display:none}.layout{display:block}.stage{height:100vh;min-height:0;border:0;border-radius:0;background:transparent}.stage canvas{pointer-events:none}</style>');controls.enabled=false}
 function resize(){const w=stage.clientWidth,h=stage.clientHeight;renderer.setSize(w,h);camera.left=-1.06*w/h;camera.right=1.06*w/h;camera.top=1.06;camera.bottom=-1.06;camera.updateProjectionMatrix()}

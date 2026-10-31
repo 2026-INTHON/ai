@@ -3,7 +3,8 @@
   "name": "민준",
   "role": "친구",
   "height": 1.8,
-  "modelUrl": "./friend/friend.glb",
+  "modelUrl": "./friend/friend.glb?v=7f6eac7f1ca3",
+  "modelSha256": "7f6eac7f1ca3a139b09ba23ad9f8275cc4587784e1d27b2aa700ed1fcfba136f",
   "canonicalUrl": "./friend/canonical.png",
   "view": "front-2.5d",
   "maxYawDegrees": 8,
@@ -33,8 +34,8 @@
   ],
   "sourceIdentityHash": "ac1de4bf5f8a3162b3230952e72c59595809a993f1f97a70a210942690bcadd8",
   "vertices": 20304,
-  "triangles": 26506,
-  "bytes": 5287584,
+  "triangles": 26508,
+  "bytes": 5287464,
   "customization": {
     "hair": [
       "original",

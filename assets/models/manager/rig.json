@@ -3,7 +3,8 @@
   "name": "한 부장",
   "role": "부장님",
   "height": 1.78,
-  "modelUrl": "./manager/manager.glb",
+  "modelUrl": "./manager/manager.glb?v=007e444da937",
+  "modelSha256": "007e444da9379afd690aca7cf1b5ac0d21b57dca5a99411c51c89ed35d847b07",
   "canonicalUrl": "./manager/canonical.png",
   "view": "front-2.5d",
   "maxYawDegrees": 8,
@@ -33,8 +34,8 @@
   ],
   "sourceIdentityHash": "e666f0a0722dda61156f37d59fb81b9e3b25a8a438525e62746d8c58fea7af7b",
   "vertices": 20072,
-  "triangles": 25992,
-  "bytes": 4901388,
+  "triangles": 26134,
+  "bytes": 4902784,
   "customization": {
     "hair": [
       "original",

@@ -188,9 +188,11 @@ def build_character(key, source, output):
     image = foreground(source.crop((x0,y0,x1,y1)))
     w,h = image.size; scale = p["height"]/h
     alpha_array = np.asarray(image)[:,:,3].copy()
+    background_rgb = np.asarray(image)[:,:,:3].astype(int)
     feet = polygon_mask((w,h),p["feet"],(x0,y0))
     floor = np.arange(h)[:,None]+y0 >= p["floorCut"]
-    alpha_array[floor & ~feet] = 0
+    neutral_shadow = (background_rgb.min(axis=2)>190) & (background_rgb.max(axis=2)-background_rgb.min(axis=2)<18)
+    alpha_array[floor & ~feet & neutral_shadow] = 0
     image.putalpha(Image.fromarray(alpha_array))
     local = lambda value: np.array(value,dtype=float)-np.array([x0,y0])
     point = {k:local(p[k]) for k in ["hip","neck","shoulderL","elbowL","handL","shoulderR","elbowR","handR","mouth"]}
@@ -334,7 +336,8 @@ def build_character(key, source, output):
     glb.doc["nodes"][0]["extras"]={"characterId":key,"view":"front-2.5d","sourceIdentityHash":identity,"maxYawDegrees":8,
         "parts":["FaceBodyProps","Hair","Outfit"],"expressions":TARGETS,"animations":CLIPS}
     path=target_folder/(key+".glb"); glb.write(path)
-    metadata={"id":key,"name":p["name"],"role":p["role"],"height":p["height"],"modelUrl":f"./{key}/{key}.glb",
+    model_hash = hashlib.sha256(path.read_bytes()).hexdigest()
+    metadata={"id":key,"name":p["name"],"role":p["role"],"height":p["height"],"modelUrl":f"./{key}/{key}.glb?v={model_hash[:12]}","modelSha256":model_hash,
         "canonicalUrl":f"./{key}/canonical.png","view":"front-2.5d","maxYawDegrees":8,"parts":["FaceBodyProps","Hair","Outfit"],
         "morphTargets":TARGETS,"animations":CLIPS,"sourceIdentityHash":identity,"vertices":n,"triangles":sum(map(len,groups))//3,
         "bytes":path.stat().st_size,"customization":{"hair":["original","chestnut","black"],"outfit":["original","navy","olive"]},
