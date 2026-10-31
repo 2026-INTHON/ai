@@ -27,7 +27,7 @@ flowchart LR
 |---|---|
 | `POST /v1/turns/evaluate` | 문맥·목표·성격을 바탕으로 대화 평가. mock/live |
 | `POST /v1/scenarios/generate` | seed 기반 3개 노드 장면 생성, 연결 그래프 검증 |
-| `POST /v1/hints` | 미리 정의된 가상 캐릭터의 걱정/목표·학습 힌트 |
+| `POST /v1/hints` | step=1 관찰 단서 → step=2 가상 캐릭터의 속마음·표현 팁, 추가 LLM 호출 없음 |
 | `POST /v1/speech/transcribe` | 파일 검증 → STT → 수정 가능한 문장 + 음성 지표 |
 | `POST /v1/speech/synthesize` | Azure TTS, 텍스트·목소리·감정·속도별 캐시 |
 | `GET /v1/audio/{asset_id}` | 내부 음성 파일. Backend가 임시 서명 URL로 중계 |
