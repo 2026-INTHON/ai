@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Malo AI Pipeline",
-    "description": "내부 AI 서비스입니다. FE는 Backend API를 사용하세요. mock 평가, Lablup/OpenAI 평가, STT, Azure TTS를 제공합니다.",
+    "description": "내부 AI 서비스입니다. FE는 Backend API를 사용하세요. 대화 평가, STT, 여자친구 성격·감정 OpenAI TTS, 나머지 캐릭터 Azure TTS를 제공합니다.",
     "version": "0.1.0"
   },
   "paths": {
@@ -2038,6 +2038,12 @@
             "title": "Characterid",
             "default": "professor"
           },
+          "personalityId": {
+            "type": "string",
+            "maxLength": 60,
+            "title": "Personalityid",
+            "default": "calm"
+          },
           "emotion": {
             "type": "string",
             "enum": [
@@ -2049,6 +2055,18 @@
             ],
             "title": "Emotion",
             "default": "neutral"
+          },
+          "reaction": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 60
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reaction"
           },
           "speed": {
             "type": "number",
