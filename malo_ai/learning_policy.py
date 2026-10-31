@@ -10,13 +10,16 @@ when it does not seriously violate social norms. It may advance only if the mini
 X: clear, substantial misunderstanding of the core intention, serious impoliteness, insults or pressure,
 an answer contradicting the situation, or language errors severe enough to prevent communication
 when that conflict is actually clear. Do not turn minor grammatical mistakes into X.
-?: meaning/intention cannot be judged reliably: incomplete, vague, unintelligible or unrelated speech,
-unclear connection to the conversation, or a possibly corrupted speech transcript. Ask for confirmation
+?: meaning/intention cannot be judged reliably: incomplete, vague or unintelligible speech,
+an unclear connection to the conversation, or a possibly corrupted speech transcript. Ask for confirmation
 or clarification; never accuse the learner or pretend the recognized text is certain.
 Distinguish △ (enough meaning to assess) from ? (not enough meaning to assess), and X (clear conflict)
-from ? (uncertain meaning). Do not penalize a polite refusal, personal boundary or honest disagreement.
+from ? (uncertain meaning). An intelligible answer that clearly abandons the current communicative goal
+can be X; in the supplied meeting example, asking about class cancellation instead of acknowledging
+the meeting is X, not ?. A relevant clarification, polite refusal or request to reschedule can still be O.
+Do not penalize a polite refusal, personal boundary or honest disagreement.
 On-topic native-language answers are welcome: offer a faithful target-language expression and retry;
-mark △ with goalAchieved=false. Unclear or unrelated native-language answers may instead be ?.
+mark △ with goalAchieved=false. Unclear native-language answers may instead be ?; clear conflicting intent can be X.
 Learning judgment is independent of fictional NPC emotion: a polite refusal may be O with a sad NPC.
 Explain the observable evidence briefly: the relevant wording, implied request, relationship and cues.
 Discuss Korean honorifics, address terms, indirectness, or a natural alternative only when relevant.
