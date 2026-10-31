@@ -252,14 +252,33 @@ def girlfriend_voice(request: SynthesisRequest):
     return voice, instructions
 
 
+def typecast_voice(request: SynthesisRequest):
+    defaults={"playful":"tc_6047863af12456064b35354e", "calm":"tc_67c90ad544cf859417f2fc3a", "strict":"tc_631725654e0d806f7158efd1"}
+    personality=request.personalityId if request.personalityId in defaults else 'calm'
+    voice=os.getenv('TYPECAST_VOICE_'+personality.upper(),defaults[personality])
+    preset={'happy':'happy','sad':'sad','angry':'angry'}.get(request.emotion,'toneup' if personality=='playful' and request.emotion=='neutral' else 'normal')
+    intensity=1.15 if preset=='toneup' else 1.25 if preset in {'happy','sad','angry'} else 1.0
+    if request.reaction=='contempt' and request.emotion=='angry':preset,intensity='tonedown',1.4
+    if request.reaction=='sobbing' and request.emotion=='sad':intensity=1.7
+    tempo=min(2,max(.5,request.speed*{'playful':1.06,'calm':1.0,'strict':1.03}[personality]))
+    return voice,{'emotion_type':'preset','emotion_preset':preset,'emotion_intensity':intensity},round(tempo,3)
+
+
 async def synthesize(request: SynthesisRequest):
     global _last_tts_call
     expressive = request.characterId == "girlfriend"
-    key = os.getenv("OPENAI_API_KEY" if expressive else "AZURE_SPEECH_KEY")
+    provider=os.getenv('MALO_GIRLFRIEND_TTS_PROVIDER','openai') if expressive else 'azure'
+    if provider not in {'typecast','openai','azure'}:
+        raise HTTPException(503, {'code':'TTS_NOT_CONFIGURED','message':'캐릭터 음성 설정을 확인해 주세요.','retryable':True})
+    key = os.getenv({'typecast':'TYPECAST_API_KEY','openai':'OPENAI_API_KEY','azure':'AZURE_SPEECH_KEY'}[provider])
     if not key:
         raise HTTPException(503, {"code": "TTS_NOT_CONFIGURED", "message": "캐릭터 음성 API 설정이 필요해요.", "retryable": True})
-    model = os.getenv("OPENAI_TTS_MODEL", "gpt-4o-mini-tts") if expressive else "azure-neural"
-    voice, instructions = girlfriend_voice(request) if expressive else (("ko-KR-InJoonNeural" if request.pack == "ko" else "en-US-JennyNeural"), "")
+    model = os.getenv('TYPECAST_TTS_MODEL','ssfm-v31') if provider=='typecast' else os.getenv("OPENAI_TTS_MODEL", "gpt-4o-mini-tts") if provider=='openai' else "azure-neural"
+    if provider=='typecast':
+        voice,prompt,tempo=typecast_voice(request)
+        instructions=json.dumps([prompt,tempo],sort_keys=True)
+    else:
+        voice, instructions = girlfriend_voice(request) if provider=='openai' else (("ko-KR-InJoonNeural" if request.pack == "ko" else "en-US-JennyNeural"), "")
     digest = hashlib.sha256(json.dumps(["persona-voice-v1", model, request.text, voice, request.personalityId, request.emotion, request.reaction, instructions, request.speed], ensure_ascii=False).encode()).hexdigest()[:40]
     asset_id = "a_" + digest
     path = DATA_DIR / "audio" / (asset_id + ".mp3")
@@ -270,7 +289,9 @@ async def synthesize(request: SynthesisRequest):
         if path.exists():
             return {"assetId": asset_id, "cached": True, "voice": voice}
         reserve_quota("tts_characters", len(request.text), int(os.getenv("MALO_TTS_DAILY_CHAR_LIMIT", "200000")))
-        if expressive:
+        if provider=='typecast':
+            reserve_quota('typecast_tts_characters',len(request.text),int(os.getenv('MALO_TYPECAST_TTS_DAILY_CHAR_LIMIT','4000')))
+        elif provider=='openai':
             reserve_quota("openai_tts_characters", len(request.text), int(os.getenv("MALO_OPENAI_TTS_DAILY_CHAR_LIMIT", "8000")))
         else:
             await asyncio.sleep(max(0, 3.1 - (time.monotonic() - _last_tts_call)))
@@ -283,7 +304,11 @@ async def synthesize(request: SynthesisRequest):
         endpoint = os.getenv("AZURE_SPEECH_TTS_ENDPOINT", f'https://{os.getenv("AZURE_SPEECH_REGION", "koreacentral")}.tts.speech.microsoft.com/cognitiveservices/v1')
         try:
             async with httpx.AsyncClient(timeout=25) as client:
-                if expressive:
+                if provider=='typecast':
+                    response=await client.post('https://api.typecast.ai/v1/text-to-speech',headers={'X-API-KEY':key},json={
+                        'model':model,'voice_id':voice,'text':clean_text,'language':'kor' if request.pack=='ko' else 'eng',
+                        'prompt':prompt,'output':{'audio_format':'mp3','audio_tempo':tempo,'audio_pitch':0,'volume':100}})
+                elif provider=='openai':
                     headers = {"Authorization": "Bearer " + key}
                     if os.getenv("OPENAI_PROJECT"):
                         headers["OpenAI-Project"] = os.environ["OPENAI_PROJECT"]
