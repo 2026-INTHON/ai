@@ -153,7 +153,7 @@ async def evaluate(request: EvaluationRequest):
         "situation": request.situation, "goal": request.node.goal, "npcText": request.node.npcText,
         "goodExample": request.node.goodExample, "fictionalIntent":request.node.hiddenThought,
         "cues":[cue.model_dump() for cue in request.node.cues],
-        "personaGuidance":PERSONA_GUIDANCE.get(request.personalityId,'Respect the supplied character and context.'),
+        "personaGuidance":('Warm, encouraging professor; light appropriate humor, patient explanation, never belittle the student. Keep professional boundaries.' if request.characterId=='professor' and request.personalityId=='playful' else PERSONA_GUIDANCE.get(request.personalityId,'Respect the supplied character and context.')),
         "text": request.text, "history": request.history[-4:],
         "allowedRoutes": request.allowedRoutes, "allowedEndings": request.allowedEndings,"livesRemaining":request.livesRemaining,
         "subtitleLanguage":request.subtitleLanguage,"imageOptions":[option.model_dump() for option in request.imageOptions],
@@ -253,21 +253,24 @@ def girlfriend_voice(request: SynthesisRequest):
 
 
 def typecast_voice(request: SynthesisRequest):
-    defaults={"playful":"tc_6047863af12456064b35354e", "calm":"tc_67c90ad544cf859417f2fc3a", "strict":"tc_631725654e0d806f7158efd1"}
+    defaults=({"playful":"tc_63622aa127f06f51e93a873c", "calm":"tc_684a7a1446e2a628b5b07230", "strict":"tc_68413e12459cfdf27b481183"}
+              if request.characterId=='professor' else
+              {"playful":"tc_67513c3cf30802da48949a14", "calm":"tc_6aab6f4f07622ec83b7ec21a", "strict":"tc_65f280c8bca6a9dc5c12c348"})
     personality=request.personalityId if request.personalityId in defaults else 'calm'
-    voice=os.getenv('TYPECAST_VOICE_'+personality.upper(),defaults[personality])
+    voice=os.getenv('TYPECAST_VOICE_'+request.characterId.upper()+'_'+personality.upper(),defaults[personality])
     preset={'happy':'happy','sad':'sad','angry':'angry'}.get(request.emotion,'toneup' if personality=='playful' and request.emotion=='neutral' else 'normal')
     intensity=1.15 if preset=='toneup' else 1.25 if preset in {'happy','sad','angry'} else 1.0
     if request.reaction=='contempt' and request.emotion=='angry':preset,intensity='tonedown',1.4
     if request.reaction=='sobbing' and request.emotion=='sad':intensity=1.7
-    tempo=min(2,max(.5,request.speed*{'playful':1.06,'calm':1.0,'strict':1.03}[personality]))
+    if request.emotion=='confused':preset,intensity='tonedown',.7
+    tempo=min(2,max(.5,request.speed*(1.0 if request.characterId=='professor' else {'playful':1.06,'calm':1.0,'strict':1.03}[personality])))
     return voice,{'emotion_type':'preset','emotion_preset':preset,'emotion_intensity':intensity},round(tempo,3)
 
 
 async def synthesize(request: SynthesisRequest):
     global _last_tts_call
-    expressive = request.characterId == "girlfriend"
-    provider=os.getenv('MALO_GIRLFRIEND_TTS_PROVIDER','openai') if expressive else 'azure'
+    expressive = request.characterId in {'girlfriend','professor'}
+    provider=os.getenv('MALO_'+request.characterId.upper()+'_TTS_PROVIDER','typecast') if expressive else 'azure'
     if provider not in {'typecast','openai','azure'}:
         raise HTTPException(503, {'code':'TTS_NOT_CONFIGURED','message':'캐릭터 음성 설정을 확인해 주세요.','retryable':True})
     key = os.getenv({'typecast':'TYPECAST_API_KEY','openai':'OPENAI_API_KEY','azure':'AZURE_SPEECH_KEY'}[provider])
@@ -279,7 +282,7 @@ async def synthesize(request: SynthesisRequest):
         instructions=json.dumps([prompt,tempo],sort_keys=True)
     else:
         voice, instructions = girlfriend_voice(request) if provider=='openai' else (("ko-KR-InJoonNeural" if request.pack == "ko" else "en-US-JennyNeural"), "")
-    digest = hashlib.sha256(json.dumps(["persona-voice-v1", model, request.text, voice, request.personalityId, request.emotion, request.reaction, instructions, request.speed], ensure_ascii=False).encode()).hexdigest()[:40]
+    digest = hashlib.sha256(json.dumps(["selected-voice-v2", provider, model, request.pack, request.characterId, request.text, voice, request.personalityId, request.emotion, request.reaction, instructions, request.speed], ensure_ascii=False).encode()).hexdigest()[:40]
     asset_id = "a_" + digest
     path = DATA_DIR / "audio" / (asset_id + ".mp3")
     if path.exists():
