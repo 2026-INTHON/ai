@@ -54,6 +54,7 @@ async def generate(request:ReportRequest):
       "Use four short sections: strengths = what worked, improvements = a concrete next action, shortcomings = what was missing or awkward, culturalTakeaways/culturalContext = one relevant cultural tip. Do not repeat the same sentence across sections. "
       "For every node also provide strengths, improvements and shortcomings; use empty arrays when there is no evidence, never invent flaws for O answers. "
       "All explanatory prose must be in language, including praise and section contents; only quoted Korean dialogue and suggested Korean expressions remain Korean. "
+      "Prefer describing the improvement in the requested language instead of embedding a new example sentence. If quoting a Korean example, copy an existing supplied Korean expression exactly; never partially translate its words or combine Japanese/Chinese characters with Korean endings (for example, never write 教授님). "
       "headline is a short phrase; overallFeedback is ONE short sentence, without repeating scores, pass/fail, generic disclaimers or certification language. "
       "Each bullet is one sentence of at most 18 words / about 80 CJK characters. At most two bullets per section. implicitIntent, culturalContext and practiceTip each use ONE short sentence. Return JSON.")
     expected=[n.get('nodeId') for n in request.nodes]
