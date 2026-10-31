@@ -544,6 +544,30 @@
         ]
       }
     },
+    "/v1/character-variants": {
+      "get": {
+        "tags": [
+          "사전 생성 에셋"
+        ],
+        "summary": "Character Variants",
+        "operationId": "character_variants_v1_character_variants_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ]
+      }
+    },
     "/v1/images/personas/generate": {
       "post": {
         "tags": [
@@ -880,6 +904,54 @@
       },
       "Evaluation": {
         "properties": {
+          "reaction": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "neutral",
+                  "happy",
+                  "confused",
+                  "sad",
+                  "angry"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reaction"
+          },
+          "goalAchieved": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Goalachieved"
+          },
+          "reasonSubtitle": {
+            "type": "string",
+            "maxLength": 1200,
+            "title": "Reasonsubtitle",
+            "default": ""
+          },
+          "gesture": {
+            "type": "string",
+            "enum": [
+              "idle",
+              "nod",
+              "tilt",
+              "thinking",
+              "open_hand",
+              "arms_crossed"
+            ],
+            "title": "Gesture",
+            "default": "idle"
+          },
           "routeId": {
             "anyOf": [
               {
