@@ -104,7 +104,7 @@ async def json_completion(schema: type[BaseModel], payload: dict, instruction: s
     system = instruction + "\nEmit exactly one final_answer JSON object, with no intermediate commentary, markdown or repeated drafts. Match this schema:\n" + json.dumps(schema.model_json_schema(), ensure_ascii=False)
     lablup_url, lablup_key = os.getenv("LABLUP_BASE_URL"), os.getenv("LABLUP_API_KEY")
     batch = schema.__name__ in {'Outline', 'Lesson','ReportDraft'}
-    tokens = 12500 if schema.__name__ == 'Lesson' else 7500 if schema.__name__=='ReportDraft' else 4000 if schema is Scenario or batch else 5000 if schema.__name__ == 'Translations' else 1500 if schema.__name__ == 'FastGrade' else 3000
+    tokens = 12500 if schema.__name__ == 'Lesson' else max(7500,min(28000,700*len(payload.get('nodes',[])))) if schema.__name__=='ReportDraft' else 4000 if schema is Scenario or batch else 5000 if schema.__name__ == 'Translations' else 1500 if schema.__name__ == 'FastGrade' else 3000
     async with httpx.AsyncClient(timeout=150 if batch else 40) as client:
         if lablup_url and lablup_key:
             try:
