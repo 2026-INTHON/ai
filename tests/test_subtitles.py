@@ -9,6 +9,18 @@ from malo_ai.providers import strict_schema
 from malo_ai.schemas import Grade
 
 class SubtitleTests(unittest.TestCase):
+    def test_korean_is_original_and_cache_is_per_text_and_language(self):
+        with tempfile.TemporaryDirectory() as tmp,patch('malo_ai.providers.DATA_DIR',Path(tmp)),patch('malo_ai.providers.json_completion',new_callable=AsyncMock) as llm:
+            self.assertEqual(asyncio.run(translate(Request(language='ko',texts=['안녕하세요.'])))['texts'],['안녕하세요.'])
+            llm.assert_not_awaited()
+            llm.return_value=(Translations(texts=['こんにちは。','ありがとう。']),'test')
+            asyncio.run(translate(Request(language='ja',texts=['안녕하세요.','고마워요.'])))
+            self.assertEqual(asyncio.run(translate(Request(language='ja',texts=['고마워요.','안녕하세요.','고마워요.'])))['texts'],['ありがとう。','こんにちは。','ありがとう。'])
+            self.assertEqual(llm.await_count,1)
+            llm.return_value=(Translations(texts=['你好。']),'test')
+            self.assertEqual(asyncio.run(translate(Request(language='zh',texts=['안녕하세요.'])))['texts'],['你好。'])
+            self.assertEqual(llm.await_count,2)
+
     def test_translation_count_cache_and_language_are_preserved(self):
         with tempfile.TemporaryDirectory() as tmp,patch('malo_ai.providers.DATA_DIR',Path(tmp)),patch('malo_ai.providers.json_completion',new_callable=AsyncMock,return_value=(Translations(texts=['Hello.','Thank you.']),'test')) as llm:
             request=Request(language='en',texts=['안녕하세요.','감사합니다.'])
