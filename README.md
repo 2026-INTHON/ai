@@ -20,7 +20,7 @@ flowchart LR
   G --> I[Pydantic JSON 검증]
   H --> I
   I --> J[Backend 상태·체력·오답·보상]
-  J --> K[Azure Speech TTS·캐시]
+  J --> K[여자친구 OpenAI 감정 TTS · 나머지 Azure · 캐시]
 ```
 
 | API | 역할 |
@@ -29,7 +29,7 @@ flowchart LR
 | `POST /v1/scenarios/generate` | seed 기반 3개 노드 장면 생성, 연결 그래프 검증 |
 | `POST /v1/hints` | step=1 관찰 단서 → step=2 가상 캐릭터의 속마음·표현 팁, 추가 LLM 호출 없음 |
 | `POST /v1/speech/transcribe` | 파일 검증 → STT → 수정 가능한 문장 + 음성 지표 |
-| `POST /v1/speech/synthesize` | Azure TTS, 텍스트·목소리·감정·속도별 캐시 |
+| `POST /v1/speech/synthesize` | 여자친구 OpenAI 성격·감정 TTS / 나머지 Azure, 음성 캐시 |
 | `GET /v1/audio/{asset_id}` | 내부 음성 파일. Backend가 임시 서명 URL로 중계 |
 | `GET /v1/persona-assets` | OpenAI 생성 이미지 manifest·assetKey 조회. GET은 생성하지 않음 |
 | `POST /v1/images/personas/generate` | 운영자용 OpenAI 캐릭터 생성/표정 편집, 캐시 재사용 |
@@ -41,10 +41,12 @@ flowchart LR
 - Mock은 단순 규칙이며 API 비용 0원입니다. Mock 자유 입력 채점은 실제 학습 품질을 대표하지 않습니다.
 - `LABLUP_BASE_URL`, `LABLUP_API_KEY`가 있으면 Lablup OpenAI 호환 Chat Completions를 먼저 호출합니다. 현재 Lablup 키는 미설정이며 실제 호출 테스트는 남아 있습니다.
 - Lablup 미설정/연결·JSON 실패 시 `OPENAI_FALLBACK_MODEL=gpt-6-luna` Responses API를 한 번 호출합니다. Pydantic 검증 실패/제공자 오류는 재시도 오류이며 틀린 답으로 처리하지 않습니다.
-- STT는 `gpt-transcribe`, TTS는 Azure Speech F0입니다. 캐릭터 이미지는 `gpt-image-2.5-flare` Image API로 생성·저장하며 앱 조회는 저장 파일만 읽습니다.
+- STT는 `gpt-transcribe`, 여자친구 TTS는 `gpt-4o-mini-tts`, 나머지 캐릭터는 Azure Speech F0입니다. 캐릭터 이미지는 `gpt-image-2.5-flare` Image API로 생성·저장하며 앱 조회는 저장 파일만 읽습니다.
 - 기본 일일 한도(KST)는 LLM 1000건, STT 300분, TTS 20만 자입니다. 실제 청구 상한 보장은 아니며 계정의 다른 사용량은 포함하지 않습니다. 제공자 요청 실패도 보수적으로 예약 사용량에 포함됩니다.
-- TTS는 캐시, 약 3.1초 요청 간격(20회/분 수준)으로 F0 요청 한도를 배려합니다. 단일 worker 기준입니다. F0 월 50만 자 한도를 다른 앱과 공유하므로 장기 사용 시 콘솔을 확인하세요.
-- 한국어는 여자친구 SunHi, 나머지 InJoon. 영어는 Jenny. 영어 지원 감정 스타일만 사용하고 한국어 감정 음성 스타일은 가정하지 않습니다.
+- TTS 캐시는 모델·텍스트·성격·목소리·감정·이미지 반응·연기 지시·속도를 포함하므로 옛 나레이션 캐시와 섞이지 않습니다. 캐시 적중에는 제공자 호출·과금이 없습니다. Azure만 약 3.1초 요청 간격으로 F0 요청 한도를 배려합니다. 단일 worker 기준입니다.
+- 여자친구 음색: playful=coral(밝음), calm=marin(차분함), strict=sage(약간 까탈스러움). 젊은 성인 여성의 대화체로, 현재 happy/sad/angry/confused를 성격보다 우선해 억양에 반영합니다. contempt는 차갑고 날카롭게, sobbing은 울먹이되 알아듣기 쉽게 지시합니다. 특정 실존인의 목소리를 복제하지 않습니다. 나머지 캐릭터의 한국어는 InJoon, 영어는 Jenny이며 Azure 한국어 감정 스타일을 지원한다고 가정하지 않습니다.
+- 여자친구 유료 TTS는 기존 전체 한도와 별도로 KST 하루 신규 생성 8,000자(`MALO_OPENAI_TTS_DAILY_CHAR_LIMIT`)로 제한합니다. 토큰 과금이므로 달러 상한은 아니며 다른 API 사용량은 별도입니다. 실패도 예약량에 포함하고, 제공자 오류/한도 초과 시 자막·다시 듣기로 처리하며 기본 나레이션으로 몰래 대체하지 않습니다. [공식 요금](https://developers.openai.com/api/docs/pricing)은 텍스트 입력 $0.60/1M tokens, 오디오 출력 $12/1M tokens입니다.
+- [OpenAI 공식 TTS 문서](https://developers.openai.com/api/docs/guides/text-to-speech) 기준 이 Speech API 모델은 2027-01-06 종료 예정입니다. 현재 해커톤의 MP3 API를 유지하며 적용했고, 계속 운영할 경우 그 전에 Realtime API로 이관해야 합니다. FE는 AI 생성 음성임을 알 수 있도록 표시합니다.
 - 톤은 **텍스트의 공손함**, 속도는 문자/단어 수 ÷ 녹음 길이, 멈춤은 PCM 낮은 음량 구간의 추정입니다. 감정 진단·발음 정확도 평가는 아닙니다. text/choice는 음성 지표가 없습니다.
 - LLM은 상태/체력/재화를 결정하지 않습니다. Backend만 결정합니다. 가상 '속마음'은 캐릭터 설정으로 모델의 내부 추론을 노출하지 않습니다.
 

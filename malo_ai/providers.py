@@ -224,13 +224,43 @@ async def generate_scenario(request: ScenarioRequest):
     return result, provider
 
 
+def girlfriend_voice(request: SynthesisRequest):
+    voice, personality = {
+        "playful": ("coral", "Bright, youthful and sociable, with a lively conversational rhythm and a smile when appropriate."),
+        "calm": ("marin", "Gentle, composed and warm, with relaxed phrasing and subtle, natural pitch variation."),
+        "strict": ("sage", "Slightly prickly and discerning, with crisp phrasing, dry questioning inflections and clear boundaries; not constantly hostile."),
+    }.get(request.personalityId, ("marin", "Gentle, composed and warm."))
+    emotion = {
+        "neutral": "Engaged and natural, like a real face-to-face conversation.",
+        "happy": "Audibly pleased and affectionate, with a smiling, lifted intonation.",
+        "sad": "Hurt and disappointed, with a quieter, softened voice and restrained hesitation.",
+        "angry": "Clearly upset, with tense, clipped emphasis and firm falling endings; do not scream.",
+        "confused": "Puzzled, with a small questioning pause and uncertain rising intonation.",
+    }[request.emotion]
+    if request.reaction == "contempt" and request.emotion == "angry":
+        emotion = "Cold contempt and disbelief: emotionally distant, low, clipped phrases, a sharp questioning inflection. Do not sound cheerful."
+    if request.reaction == "sobbing" and request.emotion == "sad":
+        emotion = "Tearful and deeply hurt: a slight tremble and breath catching between phrases, while keeping every word intelligible."
+    language = "native Korean with contemporary Seoul conversational intonation" if request.pack == "ko" else "natural conversational English"
+    instructions = (
+        f"Act as a fictional young adult woman in her twenties, speaking {language} directly to the other person. "
+        f"Keep a consistent young adult feminine voice. Personality: {personality} Current emotion: {emotion} "
+        "The current emotion takes priority over a normally cheerful personality. Use expressive, varied conversational prosody, "
+        "not audiobook narration, an announcer, a classroom reader or a customer-service assistant. "
+        "Read only the supplied dialogue verbatim, respecting its politeness level. Do not add words, laughter, sobbing sounds or stage directions."
+    )
+    return voice, instructions
+
+
 async def synthesize(request: SynthesisRequest):
     global _last_tts_call
-    key = os.getenv("AZURE_SPEECH_KEY")
+    expressive = request.characterId == "girlfriend"
+    key = os.getenv("OPENAI_API_KEY" if expressive else "AZURE_SPEECH_KEY")
     if not key:
-        raise HTTPException(503, {"code": "TTS_NOT_CONFIGURED", "message": "Azure Speech 설정이 필요해요.", "retryable": True})
-    voice = ("ko-KR-SunHiNeural" if request.characterId == "girlfriend" else "ko-KR-InJoonNeural") if request.pack == "ko" else "en-US-JennyNeural"
-    digest = hashlib.sha256(json.dumps([request.text, voice, request.emotion, request.speed], ensure_ascii=False).encode()).hexdigest()[:40]
+        raise HTTPException(503, {"code": "TTS_NOT_CONFIGURED", "message": "캐릭터 음성 API 설정이 필요해요.", "retryable": True})
+    model = os.getenv("OPENAI_TTS_MODEL", "gpt-4o-mini-tts") if expressive else "azure-neural"
+    voice, instructions = girlfriend_voice(request) if expressive else (("ko-KR-InJoonNeural" if request.pack == "ko" else "en-US-JennyNeural"), "")
+    digest = hashlib.sha256(json.dumps(["persona-voice-v1", model, request.text, voice, request.personalityId, request.emotion, request.reaction, instructions, request.speed], ensure_ascii=False).encode()).hexdigest()[:40]
     asset_id = "a_" + digest
     path = DATA_DIR / "audio" / (asset_id + ".mp3")
     if path.exists():
@@ -240,7 +270,10 @@ async def synthesize(request: SynthesisRequest):
         if path.exists():
             return {"assetId": asset_id, "cached": True, "voice": voice}
         reserve_quota("tts_characters", len(request.text), int(os.getenv("MALO_TTS_DAILY_CHAR_LIMIT", "200000")))
-        await asyncio.sleep(max(0, 3.1 - (time.monotonic() - _last_tts_call)))
+        if expressive:
+            reserve_quota("openai_tts_characters", len(request.text), int(os.getenv("MALO_OPENAI_TTS_DAILY_CHAR_LIMIT", "8000")))
+        else:
+            await asyncio.sleep(max(0, 3.1 - (time.monotonic() - _last_tts_call)))
         clean_text = re.sub(r"[\x00-\x08\x0b\x0c\x0e-\x1f]", "", request.text)
         inner = f'<prosody rate="{round((request.speed - 1) * 100):+d}%">{html.escape(clean_text)}</prosody>'
         style = {"happy": "cheerful", "sad": "sad", "angry": "angry"}.get(request.emotion)
@@ -249,9 +282,16 @@ async def synthesize(request: SynthesisRequest):
         ssml = f'<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xmlns:mstts="https://www.w3.org/2001/mstts" xml:lang="{request.pack}-{"KR" if request.pack == "ko" else "US"}"><voice name="{voice}">{inner}</voice></speak>'
         endpoint = os.getenv("AZURE_SPEECH_TTS_ENDPOINT", f'https://{os.getenv("AZURE_SPEECH_REGION", "koreacentral")}.tts.speech.microsoft.com/cognitiveservices/v1')
         try:
-            _last_tts_call = time.monotonic()
             async with httpx.AsyncClient(timeout=25) as client:
-                response = await client.post(endpoint, headers={"Ocp-Apim-Subscription-Key": key, "X-Microsoft-OutputFormat": "audio-24khz-48kbitrate-mono-mp3", "Content-Type": "application/ssml+xml", "User-Agent": "Malo"}, content=ssml.encode())
+                if expressive:
+                    headers = {"Authorization": "Bearer " + key}
+                    if os.getenv("OPENAI_PROJECT"):
+                        headers["OpenAI-Project"] = os.environ["OPENAI_PROJECT"]
+                    response = await client.post("https://api.openai.com/v1/audio/speech", headers=headers,
+                        json={"model": model, "voice": voice, "input": clean_text, "instructions": instructions, "speed": request.speed, "response_format": "mp3"})
+                else:
+                    _last_tts_call = time.monotonic()
+                    response = await client.post(endpoint, headers={"Ocp-Apim-Subscription-Key": key, "X-Microsoft-OutputFormat": "audio-24khz-48kbitrate-mono-mp3", "Content-Type": "application/ssml+xml", "User-Agent": "Malo"}, content=ssml.encode())
                 response.raise_for_status()
             path.parent.mkdir(parents=True, exist_ok=True)
             temporary = path.with_suffix(".tmp")
