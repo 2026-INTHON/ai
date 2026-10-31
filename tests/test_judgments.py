@@ -49,3 +49,6 @@ class JudgmentTests(unittest.TestCase):
             self.assertEqual(llm.call_args.args[1]['livesRemaining'],1)
             self.assertTrue(llm.call_args.args[1]['imageOptions'][0]['endingPreferred'])
             self.assertIn('cold contempt or sadness',llm.call_args.args[2])
+            self.assertIn('뭐, 너 뭐라고 했어? 장난해?',llm.call_args.args[2])
+            self.assertIn('어떻게 그런 말을 할 수가 있어? 정말 너무해.',llm.call_args.args[2])
+            self.assertIn('never for minor mistakes',llm.call_args.args[2])

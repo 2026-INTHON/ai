@@ -10,9 +10,9 @@ from . import providers
 Language=Literal['en','ja','zh','vi','es','id','ko']
 class Request(Model):
     language: Language='en'
-    texts:list[str]=Field(min_length=1,max_length=20)
+    texts:list[str]=Field(min_length=1,max_length=40)
 class Translations(Model):
-    texts:list[Annotated[str,Field(min_length=1,max_length=1600)]]=Field(min_length=1,max_length=20)
+    texts:list[Annotated[str,Field(min_length=1,max_length=1600)]]=Field(min_length=1,max_length=40)
 
 async def translate(request:Request):
     if any(not text.strip() or len(text)>800 for text in request.texts):raise HTTPException(422,'Invalid subtitle text')
