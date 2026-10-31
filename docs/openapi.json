@@ -1409,6 +1409,16 @@
                 "type": "null"
               }
             ]
+          },
+          "nextCheckpoint": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/NextCheckpoint"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "additionalProperties": false,
@@ -1627,6 +1637,34 @@
           "index"
         ],
         "title": "LessonRequest"
+      },
+      "NextCheckpoint": {
+        "properties": {
+          "goal": {
+            "type": "string",
+            "maxLength": 1000,
+            "title": "Goal"
+          },
+          "draftLine": {
+            "type": "string",
+            "maxLength": 2000,
+            "title": "Draftline"
+          },
+          "routeLines": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Routelines"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "goal",
+          "draftLine"
+        ],
+        "title": "NextCheckpoint"
       },
       "Outline": {
         "properties": {

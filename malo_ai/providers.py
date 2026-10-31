@@ -152,6 +152,7 @@ async def evaluate(request: EvaluationRequest):
         "pack": request.pack, "characterId": request.characterId, "personalityId": request.personalityId,
         "situation": request.situation, "goal": request.node.goal, "npcText": request.node.npcText,
         "goodExample": request.node.goodExample, "fictionalIntent":request.node.hiddenThought,
+        "nextCheckpoint":request.nextCheckpoint.model_dump() if request.nextCheckpoint else None,
         "cues":[cue.model_dump() for cue in request.node.cues],
         "persona":request.persona.model_dump() if request.persona else None,
         "personaGuidance":request.persona.dialogueRules if request.persona else ('Warm, encouraging professor; light appropriate humor, patient explanation, never belittle the student. Keep professional boundaries.' if request.characterId=='professor' and request.personalityId=='playful' else PERSONA_GUIDANCE.get(request.personalityId,'Respect the supplied character and context.')),
@@ -170,7 +171,11 @@ async def evaluate(request: EvaluationRequest):
        "For a dramatic bad-ending npcReply, match the selected image reaction: contempt can sound like '뭐야, 이 사람. 이상한 사람 아니야?'; anger like '뭐, 너 뭐라고 했어? 장난해?'; sadness/crying like '어떻게 그런 말을 할 수가 있어? 정말 너무해.' "
        "Adapt the wording to persona and relationship: a professor can say '지금 뭐라고 했나요? 그런 태도로는 면담을 이어가기 어렵겠어요.' Do not copy a casual girlfriend line into every role. "
        "These are fictional NPC lines, not coaching claims about the learner. Coaching reasons remain respectful and evidence-based. "
-       "npcReply is in-character dialogue, not a teacher's feedback. In a clear bad ending, use a brief emotionally sharp line matching the reaction instead of generic study advice; feedback/reason remain supportive coaching. "
+       "npcReply is the SINGLE next conversational line the learner will answer. It is in-character dialogue, not teacher feedback. There is no separate scripted line after it. "
+       "First acknowledge or answer the learner's actual content, including their question, preference, refusal or proposed details. Never ignore it to reset to a script or invent agreement. "
+       "If the current learning goal is achieved (O or advancing △) and nextCheckpoint exists, naturally bridge to that next learning goal in the SAME npcReply. Its draftLine/routeLines are illustrative scaffolding, not facts or mandatory wording. Preserve the learner's named times, places and choices; do not ask again for information already given. "
+       "If the goal is not achieved, continue the SAME conversation with an appropriate response or one targeted clarification. Never repeat the original scripted question verbatim, force a correct answer, or pretend an inappropriate answer was accepted. "
+       "If no nextCheckpoint remains and the goal is achieved, close naturally. In a clear bad ending, use a brief emotionally sharp line matching the reaction instead of generic study advice; feedback/reason remain supportive coaching. "
        "A line such as '경찰에 신고해야겠어' is allowed ONLY when actual threatening, stalking or persistent safety-threatening harassment is present in the supplied dialogue; never for minor mistakes, awkward Korean, disagreement or a polite refusal. Never invent such conduct to justify a dramatic line. "
        "Prefer fitting endingPreferred images for that ending. Contempt is emotion=angry with reaction=contempt; keep dialogue respectful even when the fictional NPC is upset. "
        "Do not use intense anger/contempt/tears for minor errors or a polite refusal alone. A respectful deferred outcome may show restrained sadness. BE decides the actual ending, lives and learning mark. "

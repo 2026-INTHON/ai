@@ -124,6 +124,12 @@ class PersonaContext(Model):
     dialogueRules: list[str] = Field(max_length=16)
 
 
+class NextCheckpoint(Model):
+    goal: str = Field(max_length=1000)
+    draftLine: str = Field(max_length=2000)
+    routeLines: dict[str, str] = Field(default_factory=dict)
+
+
 class EvaluationRequest(Model):
     mode: Literal["mock", "live"] = "mock"
     imageOptions: list[ImageOption] = Field(default_factory=list,max_length=32)
@@ -140,6 +146,7 @@ class EvaluationRequest(Model):
     allowedEndings: list[str] = Field(default_factory=list, max_length=3)
     subtitleLanguage: Literal['en','ja','zh','vi','es','id','ko']='en'
     persona: PersonaContext | None = None
+    nextCheckpoint: NextCheckpoint | None = None
 
     @model_validator(mode='after')
     def matching_persona(self):
