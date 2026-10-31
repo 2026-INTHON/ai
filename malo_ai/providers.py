@@ -17,7 +17,10 @@ from pydantic import BaseModel, create_model
 from .schemas import EvaluationRequest, Grade, Scenario, ScenarioRequest, SynthesisRequest
 from .learning_policy import DIALOGUE_STYLE
 
-FastGrade = create_model('FastGrade', **{k: (v.annotation, v) for k,v in Grade.model_fields.items() if k != 'views'})
+# Generate the character's response before learner corrections, so a suggested
+# learner sentence is not accidentally continued as the NPC's own dialogue.
+_dialogue_fields = ('npcSpeechLevel', 'npcReply', 'emotion', 'gesture', 'action', 'cues', 'npcReplySubtitle')
+FastGrade = create_model('FastGrade', **{k: (Grade.model_fields[k].annotation, Grade.model_fields[k]) for k in [*_dialogue_fields, *(k for k in Grade.model_fields if k not in (*_dialogue_fields, 'views'))]})
 
 DATA_DIR = Path(os.getenv("MALO_AI_DATA_DIR", ".data"))
 _tts_lock = asyncio.Lock()
@@ -212,6 +215,8 @@ async def evaluate(request: EvaluationRequest):
        "Return to the main story only through a clear, plausible transition grounded in the agreed activity. It is fine to spend a turn following the learner's detour; do not force the next objective into every reply. "
        "If asked '다음에도 같이 국수 먹으러 갈까요?', answer yes/no to the invitation before discussing food. Do not substitute an answer about kimchi or ingredients. "
        "Before emitting, check that npcReply directly responds to the latest act and neither contradicts nor repeats an already accepted plan. Rewrite it if it fails this check. Adapt all examples to the current npcSpeechLevel. "
+       "npcReply is spoken by the CHARACTER; text and betterExpression are spoken by the LEARNER. Never echo the learner's question as your answer or confuse these speakers. Answer every concrete question in the latest utterance, including a drink choice, before any optional transition. "
+       "Use the supplied history to name the earlier topic when returning to it; never ask '아까 무슨 이야기 하고 있었지?' when the topic is present in history. Do not volunteer a definition of the relationship or a rejection solely because the next learning goal mentions romance; respond to what was actually asked. "
        "Never diagnose the learner. Return JSON.")
     data = {k:v for k,v in result.model_dump().items() if k != 'views'}
     if result.evaluationMark is not None:

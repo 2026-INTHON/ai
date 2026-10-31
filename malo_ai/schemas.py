@@ -186,9 +186,9 @@ class Grade(Model):
     toneScore: int = Field(ge=0, le=100)
     toneLabel: str = Field(min_length=1, max_length=80)
     feedback: str = Field(min_length=1, max_length=400)
-    betterExpression: str = Field(min_length=1, max_length=600)
+    betterExpression: str = Field(min_length=1, max_length=600, description='A suggested improved LEARNER reply, never the character response.')
     reason: str = Field(min_length=1, max_length=600)
-    npcReply: str = Field(min_length=1, max_length=800)
+    npcReply: str = Field(min_length=1, max_length=800, description='The CHARACTER speaks next: directly answer the learner, never repeat their question or betterExpression.')
     emotion: Emotion
     native: bool
     action: str = Field(min_length=1, max_length=400)
