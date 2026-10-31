@@ -27,3 +27,14 @@ class JudgmentTests(unittest.TestCase):
                 self.assertIn('네 교수님. 내일 2시에 갈게요.',instruction)
                 self.assertIn('교수님, 내일 수업은 휴강인가요?',instruction)
                 self.assertIn('교수님, 내일... 아니 그때 제가... 시간...',instruction)
+
+    def test_context_image_is_allowlisted_and_fluent_korean_is_not_native_language_help(self):
+        option={'assetKey':'characters/professor/time_aware','emotion':'neutral','gesture':'idle','useWhen':'다음 일정 확인','pose':'checking_watch'}
+        request=EvaluationRequest(mode='live',pack='ko',characterId='professor',personalityId='calm',situation='면담 마무리',node=node(),text='교수님, 오늘 시간 내 주셔서 감사합니다. 다음에 찾아뵙겠습니다.',imageOptions=[option])
+        for key in [option['assetKey'],'characters/girlfriend/other']:
+            result=mock_grade(request).model_copy(update={'evaluationMark':'O','native':True,'goalAchieved':True,'imageAssetKey':key})
+            with patch('malo_ai.providers.json_completion',new_callable=AsyncMock,return_value=(result,'test')) as llm:
+                grade,_=asyncio.run(evaluate(request))
+                self.assertFalse(grade.native);self.assertEqual(grade.outcome,'correct')
+                self.assertEqual(grade.imageAssetKey,key if key==option['assetKey'] else None)
+                self.assertEqual(llm.call_args.args[1]['imageOptions'][0]['useWhen'],'다음 일정 확인')
