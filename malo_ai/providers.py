@@ -135,7 +135,8 @@ async def evaluate(request: EvaluationRequest):
        "Respect boundaries and consent, no sexual/abusive/profane output. No absolute cultural stereotypes. "
        "Only choose routeId/endingId from allowed lists; null when list empty. direct means explicit proposal, considerate means checking the other's preference first. "
        "An O grade may still end deferred due policy or consent; happy only if story agreement is plausible. Never decide lives/rewards. "
-       "Very concise: each feedback/reason one sentence, npcReply at most two short sentences. npcReplySubtitle faithfully translates npcReply into subtitleLanguage, preserving politeness and uncertainty. Return JSON.")
+       "Very concise: each feedback/reason one sentence, npcReply at most two short sentences. npcReplySubtitle faithfully translates npcReply into subtitleLanguage, preserving politeness and uncertainty. "
+       "gesture selects a visible fictional NPC pose: idle, nod, tilt, thinking, open_hand, arms_crossed. Use a restrained gesture appropriate to the NPC reply, never a diagnosis of the learner. Return JSON.")
     data = {k:v for k,v in result.model_dump().items() if k not in {'action','cues','views'}}
     if result.outcome == 'correct' and not (result.native or other_language(request.text, request.pack)) and ((request.allowedRoutes and data['routeId'] not in request.allowedRoutes) or (request.allowedEndings and data['endingId'] not in request.allowedEndings)):
         raise HTTPException(502, {'code':'STORY_ROUTE_INVALID','message':'이야기 반응을 확인하지 못했어요. 다시 시도해 주세요.','retryable':True})

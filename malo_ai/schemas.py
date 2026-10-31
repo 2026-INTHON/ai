@@ -4,6 +4,7 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 Pack = Literal["ko", "en"]
 Emotion = Literal["neutral", "happy", "confused", "sad", "angry"]
+Gesture = Literal['idle','nod','tilt','thinking','open_hand','arms_crossed']
 
 
 class Model(BaseModel):
@@ -101,6 +102,7 @@ class EvaluationRequest(Model):
 
 
 class Grade(Model):
+    gesture: Gesture='idle'
     routeId: str | None = None
     endingId: str | None = None
     npcReplySubtitle: str = Field(default='',max_length=1600)

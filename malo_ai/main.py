@@ -124,6 +124,11 @@ def assets():
     return images.catalog()
 
 
+@app.get('/v1/character-variants',dependencies=[Depends(authorize)],tags=['사전 생성 에셋'])
+def character_variants():
+    return images.variants()
+
+
 @app.post("/v1/images/personas/generate", response_model=PersonaImageResult, dependencies=[Depends(authorize)], tags=["이미지 생성"])
 async def generate_persona(request: PersonaImageRequest):
     """운영자용. 고정 medium 품질, 기본 이미지에서 표정 편집, 캐시 적중 시 과금 없음. 최대 20회/일."""
