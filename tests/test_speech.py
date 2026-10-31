@@ -11,6 +11,24 @@ from malo_ai.schemas import SynthesisRequest
 
 
 class SpeechTests(unittest.IsolatedAsyncioTestCase):
+    async def test_selected_six_voices_keep_identity_across_emotions_and_refresh_old_cache(self):
+        response=httpx.Response(200,content=b'ID3'+bytes(100),request=httpx.Request('POST','https://api.typecast.ai/v1/text-to-speech'))
+        voices={
+            'girlfriend':{'playful':'tc_67513c3cf30802da48949a14','strict':'tc_65f280c8bca6a9dc5c12c348','calm':'tc_6aab6f4f07622ec83b7ec21a'},
+            'professor':{'calm':'tc_684a7a1446e2a628b5b07230','strict':'tc_68413e12459cfdf27b481183','playful':'tc_63622aa127f06f51e93a873c'},
+        }
+        with tempfile.TemporaryDirectory() as tmp,patch('malo_ai.providers.DATA_DIR',Path(tmp)),patch.dict('os.environ',{'TYPECAST_API_KEY':'test-key','TYPECAST_VOICE_CALM':'old-voice'},clear=True),patch('httpx.AsyncClient.post',new_callable=AsyncMock,return_value=response) as post:
+            ids=set()
+            for character,profiles in voices.items():
+                for personality,voice in profiles.items():
+                    for emotion,reaction,preset in [('neutral',None,'toneup' if personality=='playful' else 'normal'),('happy',None,'happy'),('angry',None,'angry'),('sad','sobbing','sad'),('angry','contempt','tonedown'),('confused',None,'tonedown')]:
+                        request=SynthesisRequest(text='그렇게 말씀하셨군요.',characterId=character,personalityId=personality,emotion=emotion,reaction=reaction)
+                        result=await synthesize(request)
+                        self.assertEqual(result['voice'],voice);self.assertFalse(result['cached']);self.assertNotIn(result['assetId'],ids);ids.add(result['assetId'])
+                        payload=post.call_args.kwargs['json'];self.assertEqual(payload['voice_id'],voice);self.assertEqual(payload['prompt']['emotion_preset'],preset)
+                        self.assertTrue((await synthesize(request))['cached'])
+            self.assertEqual(post.await_count,36)
+
     async def test_typecast_uses_catalogued_young_female_conversation_voices_and_emotional_presets(self):
         response=httpx.Response(200,content=b'ID3'+bytes(100),request=httpx.Request('POST','https://api.typecast.ai/v1/text-to-speech'))
         with tempfile.TemporaryDirectory() as tmp,patch('malo_ai.providers.DATA_DIR',Path(tmp)),patch.dict('os.environ',{'TYPECAST_API_KEY':'test-key','MALO_GIRLFRIEND_TTS_PROVIDER':'typecast'}),patch('httpx.AsyncClient.post',new_callable=AsyncMock,return_value=response) as post:
@@ -27,7 +45,7 @@ class SpeechTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_girlfriend_personality_emotion_and_reaction_control_voice_and_cache(self):
         response = httpx.Response(200, content=b"ID3" + bytes(100), request=httpx.Request("POST", "https://api.openai.com/v1/audio/speech"))
-        with tempfile.TemporaryDirectory() as tmp, patch("malo_ai.providers.DATA_DIR", Path(tmp)), patch.dict("os.environ", {"OPENAI_API_KEY": "test-key", "MALO_OPENAI_TTS_DAILY_CHAR_LIMIT": "1000"}), patch("httpx.AsyncClient.post", new_callable=AsyncMock, return_value=response) as post:
+        with tempfile.TemporaryDirectory() as tmp, patch("malo_ai.providers.DATA_DIR", Path(tmp)), patch.dict("os.environ", {"MALO_GIRLFRIEND_TTS_PROVIDER":"openai", "OPENAI_API_KEY": "test-key", "MALO_OPENAI_TTS_DAILY_CHAR_LIMIT": "1000"}), patch("httpx.AsyncClient.post", new_callable=AsyncMock, return_value=response) as post:
             ids = set()
             for personality, voice in [("playful", "coral"), ("calm", "marin"), ("strict", "sage")]:
                 request = SynthesisRequest(text="이번 주말에 시간 있어?", characterId="girlfriend", personalityId=personality, emotion="happy")
@@ -52,7 +70,7 @@ class SpeechTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_paid_limit_and_provider_failure_do_not_silently_use_narrator_voice(self):
         response = httpx.Response(429, request=httpx.Request("POST", "https://api.openai.com/v1/audio/speech"))
-        with tempfile.TemporaryDirectory() as tmp, patch("malo_ai.providers.DATA_DIR", Path(tmp)), patch.dict("os.environ", {"OPENAI_API_KEY": "test-key", "MALO_OPENAI_TTS_DAILY_CHAR_LIMIT": "10"}), patch("httpx.AsyncClient.post", new_callable=AsyncMock, return_value=response) as post:
+        with tempfile.TemporaryDirectory() as tmp, patch("malo_ai.providers.DATA_DIR", Path(tmp)), patch.dict("os.environ", {"MALO_GIRLFRIEND_TTS_PROVIDER":"openai", "OPENAI_API_KEY": "test-key", "MALO_OPENAI_TTS_DAILY_CHAR_LIMIT": "10"}), patch("httpx.AsyncClient.post", new_callable=AsyncMock, return_value=response) as post:
             with self.assertRaises(HTTPException) as error:
                 await synthesize(SynthesisRequest(text="안녕", characterId="girlfriend"))
             self.assertEqual(error.exception.status_code, 502)
@@ -65,7 +83,7 @@ class SpeechTests(unittest.IsolatedAsyncioTestCase):
     async def test_other_characters_keep_azure_voice_and_cache(self):
         response = httpx.Response(200, content=b"ID3" + bytes(100), request=httpx.Request("POST", "https://azure.test"))
         with tempfile.TemporaryDirectory() as tmp, patch("malo_ai.providers.DATA_DIR", Path(tmp)), patch.dict("os.environ", {"AZURE_SPEECH_KEY": "test-key"}), patch("httpx.AsyncClient.post", new_callable=AsyncMock, return_value=response) as post, patch("malo_ai.providers.asyncio.sleep", new_callable=AsyncMock):
-            request = SynthesisRequest(text="다음 주에 오세요.", characterId="professor")
+            request = SynthesisRequest(text="다음 주에 오세요.", characterId="manager")
             result = await synthesize(request)
             self.assertEqual(result["voice"], "ko-KR-InJoonNeural")
             self.assertIn(b"ko-KR-InJoonNeural", post.call_args.kwargs["content"])
