@@ -1,0 +1,105 @@
+{
+  "pipeline": "deterministic-2.5d-render",
+  "items": [
+    {
+      "assetKey": "characters/girlfriend/neutral",
+      "file": "girlfriend/neutral.png",
+      "identityHash": "2502ceaa4c38a6d37922909aa64dc79f8067569ce0764c9bb78cc09c7fea2368"
+    },
+    {
+      "assetKey": "characters/girlfriend/happy",
+      "file": "girlfriend/happy.png",
+      "identityHash": "2502ceaa4c38a6d37922909aa64dc79f8067569ce0764c9bb78cc09c7fea2368"
+    },
+    {
+      "assetKey": "characters/girlfriend/confused",
+      "file": "girlfriend/confused.png",
+      "identityHash": "2502ceaa4c38a6d37922909aa64dc79f8067569ce0764c9bb78cc09c7fea2368"
+    },
+    {
+      "assetKey": "characters/girlfriend/sad",
+      "file": "girlfriend/sad.png",
+      "identityHash": "2502ceaa4c38a6d37922909aa64dc79f8067569ce0764c9bb78cc09c7fea2368"
+    },
+    {
+      "assetKey": "characters/girlfriend/angry",
+      "file": "girlfriend/angry.png",
+      "identityHash": "2502ceaa4c38a6d37922909aa64dc79f8067569ce0764c9bb78cc09c7fea2368"
+    },
+    {
+      "assetKey": "characters/friend/neutral",
+      "file": "friend/neutral.png",
+      "identityHash": "ac1de4bf5f8a3162b3230952e72c59595809a993f1f97a70a210942690bcadd8"
+    },
+    {
+      "assetKey": "characters/friend/happy",
+      "file": "friend/happy.png",
+      "identityHash": "ac1de4bf5f8a3162b3230952e72c59595809a993f1f97a70a210942690bcadd8"
+    },
+    {
+      "assetKey": "characters/friend/confused",
+      "file": "friend/confused.png",
+      "identityHash": "ac1de4bf5f8a3162b3230952e72c59595809a993f1f97a70a210942690bcadd8"
+    },
+    {
+      "assetKey": "characters/friend/sad",
+      "file": "friend/sad.png",
+      "identityHash": "ac1de4bf5f8a3162b3230952e72c59595809a993f1f97a70a210942690bcadd8"
+    },
+    {
+      "assetKey": "characters/friend/angry",
+      "file": "friend/angry.png",
+      "identityHash": "ac1de4bf5f8a3162b3230952e72c59595809a993f1f97a70a210942690bcadd8"
+    },
+    {
+      "assetKey": "characters/manager/neutral",
+      "file": "manager/neutral.png",
+      "identityHash": "e666f0a0722dda61156f37d59fb81b9e3b25a8a438525e62746d8c58fea7af7b"
+    },
+    {
+      "assetKey": "characters/manager/happy",
+      "file": "manager/happy.png",
+      "identityHash": "e666f0a0722dda61156f37d59fb81b9e3b25a8a438525e62746d8c58fea7af7b"
+    },
+    {
+      "assetKey": "characters/manager/confused",
+      "file": "manager/confused.png",
+      "identityHash": "e666f0a0722dda61156f37d59fb81b9e3b25a8a438525e62746d8c58fea7af7b"
+    },
+    {
+      "assetKey": "characters/manager/sad",
+      "file": "manager/sad.png",
+      "identityHash": "e666f0a0722dda61156f37d59fb81b9e3b25a8a438525e62746d8c58fea7af7b"
+    },
+    {
+      "assetKey": "characters/manager/angry",
+      "file": "manager/angry.png",
+      "identityHash": "e666f0a0722dda61156f37d59fb81b9e3b25a8a438525e62746d8c58fea7af7b"
+    },
+    {
+      "assetKey": "characters/professor/neutral",
+      "file": "professor/neutral.png",
+      "identityHash": "be9a09cd700e7ba5cec45b061eb1126d9a91a6db1674e349c5c58770108204e5"
+    },
+    {
+      "assetKey": "characters/professor/happy",
+      "file": "professor/happy.png",
+      "identityHash": "be9a09cd700e7ba5cec45b061eb1126d9a91a6db1674e349c5c58770108204e5"
+    },
+    {
+      "assetKey": "characters/professor/confused",
+      "file": "professor/confused.png",
+      "identityHash": "be9a09cd700e7ba5cec45b061eb1126d9a91a6db1674e349c5c58770108204e5"
+    },
+    {
+      "assetKey": "characters/professor/sad",
+      "file": "professor/sad.png",
+      "identityHash": "be9a09cd700e7ba5cec45b061eb1126d9a91a6db1674e349c5c58770108204e5"
+    },
+    {
+      "assetKey": "characters/professor/angry",
+      "file": "professor/angry.png",
+      "identityHash": "be9a09cd700e7ba5cec45b061eb1126d9a91a6db1674e349c5c58770108204e5"
+    }
+  ]
+}

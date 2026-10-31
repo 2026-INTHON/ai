@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Malo · 2.5D 캐릭터 스튜디오</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#f3f3ee;color:#171815;font:15px/1.5 "Segoe UI","Malgun Gothic",sans-serif}button,select,input{font:inherit}button,select{min-height:42px;border:1px solid #d5d7cf;border-radius:12px;background:#fff;color:inherit;padding:8px 13px}button{cursor:pointer}button:hover{background:#f2f4e9}button:focus-visible,select:focus-visible{outline:3px solid #83ac26;outline-offset:2px}button[aria-pressed=true],.primary{background:#caff4a;border-color:#9fc735}.shell{max-width:1240px;margin:auto;padding:28px}header{display:flex;justify-content:space-between;align-items:center;gap:20px;margin-bottom:20px}.brand{font-size:24px;font-weight:800;letter-spacing:-1px}.brand small{display:block;font-size:13px;font-weight:400;letter-spacing:0;color:#62665a}.tag{background:#e7e9df;border-radius:30px;font-size:12px;padding:6px 12px;white-space:nowrap}.layout{display:grid;grid-template-columns:minmax(0,1fr) 290px;gap:20px}.stage{position:relative;border:1px solid #ddd  ;border-radius:28px;overflow:hidden;background:radial-gradient(ellipse at 50% 38%,#fff 30%,#eeefe8 100%);height:min(75vh,740px);min-height:520px}.stage canvas{display:block;width:100%;height:100%;touch-action:none}.stage-meta{position:absolute;left:22px;top:20px;pointer-events:none;max-width:70%}.stage-meta strong{display:block;font-size:19px}.stage-meta span{font-size:12px;color:#62665a}.stage-footer{position:absolute;bottom:18px;left:22px;right:22px;display:flex;justify-content:space-between;gap:12px;font-size:12px;color:#5d6355;pointer-events:none}.panel{display:flex;flex-direction:column;gap:18px;padding:22px;background:#fff;border:1px solid #dedfd7;border-radius:24px}h2{font-size:13px;margin:0 0 9px;color:#60675a;font-weight:600}.section select{width:100%}.pills{display:flex;flex-wrap:wrap;gap:7px}.pills button{flex:1;white-space:nowrap;font-size:13px;padding:7px 10px;min-width:70px}.row{display:flex;gap:8px;align-items:center}.row label{flex:1;font-size:13px}.row input{accent-color:#748f2d}.note{font-size:12px;line-height:1.7;color:#6e7368;margin:0}.separator{height:1px;background:#e8e9e2}.status{font-size:12px;color:#68705f;min-height:36px}.error{color:#a32525}.export{margin-top:auto;display:grid;gap:8px}.caption{font-size:12px;color:#6d7365;margin:14px 6px}.meter{font-variant-numeric:tabular-nums}.busy{position:absolute;inset:0;background:#f5f5eddd;display:grid;place-items:center;z-index:2}.busy[hidden]{display:none}a{color:#4c661b}.export button{width:100%}@media(max-width:760px){.shell{padding:16px}.layout{grid-template-columns:1fr}.stage{height:620px;min-height:440px}.panel{gap:16px}.brand{font-size:22px}header{align-items:flex-start}.tag{max-width:140px;white-space:normal}.pills button{flex:none;min-width:75px}.export{grid-template-columns:1fr 1fr}.stage-footer{font-size:11px}}@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto}}
+</style>
+<script type="importmap">{"imports":{"three":"./vendor/three.module.js","three/addons/":"./vendor/addons/"}}</script>
+</head>
+<body>
+<main class="shell">
+<header><div class="brand">Malo <small>같은 얼굴로, 자연스럽게 움직여요.</small></div><span class="tag">정면 중심 2.5D · 고정 텍스처</span></header>
+<div class="layout">
+ <section class="stage" id="stage" aria-label="애니메이션 캐릭터 미리보기">
+  <div class="stage-meta"><strong id="characterName">서윤</strong><span id="characterRole">여자친구 · 원본 외모 고정</span></div>
+  <div id="busy" class="busy" role="status">모델을 불러오고 있어요…</div>
+  <div class="stage-footer"><span>드래그로 조금 돌려보기 · 휠로 확대</span><span id="motionLabel">대기</span></div>
+ </section>
+ <aside class="panel" aria-label="캐릭터 제어">
+  <div class="section"><h2>캐릭터</h2><select id="character" aria-label="캐릭터 선택"><option value="girlfriend">서윤 · 여자친구</option><option value="friend">민준 · 친구</option><option value="manager">한 부장 · 부장님</option><option value="professor">김 교수 · 교수님</option></select></div>
+  <div class="section"><h2>감정 표현</h2><div class="pills" id="emotions"><button data-emotion="idle" aria-pressed="true">평온</button><button data-emotion="happy" aria-pressed="false">기쁨</button><button data-emotion="confused" aria-pressed="false">갸웃</button><button data-emotion="sad" aria-pressed="false">서운함</button><button data-emotion="angry" aria-pressed="false">불만</button></div></div>
+  <div class="section"><h2>제스처</h2><select id="gesture" aria-label="제스처 선택"><option value="idle">호흡 · 눈 깜빡임</option><option value="talk">말하기</option><option value="nod">끄덕이기</option><option value="shake">고개 흔들기</option><option value="greeting">인사하기</option></select></div>
+  <label class="row"><span>움직임 재생</span><input id="playing" type="checkbox" checked></label>
+  <label class="row"><span>입 움직임 추가</span><input id="speaking" type="checkbox"></label>
+  <label class="row" for="position"><span>동작 살펴보기</span><input id="position" type="range" min="0" max="1" step="0.01" value="0" aria-label="동작 진행 위치" style="width:115px"></label>
+  <div class="separator"></div>
+  <div class="section"><h2>헤어 색상</h2><select id="hair" aria-label="헤어 색상"><option value="0">원본</option><option value="1">체스넛</option><option value="2">블랙</option></select></div>
+  <div class="section"><h2>의상 색상</h2><select id="outfit" aria-label="의상 색상"><option value="3">원본</option><option value="4">네이비</option><option value="5">올리브</option></select></div>
+  <p class="note">머리와 의상은 독립된 파트예요. 이 버전은 색상 프리셋을 제공하며, 다른 헤어컷·의상 실루엣은 해당 파트를 새로 제작해 연결합니다.</p>
+  <div class="status" id="status" role="status" aria-live="polite">모델 준비 중</div>
+  <div class="export"><button id="capture">현재 모습 PNG</button><button class="primary" id="exportAll">20개 표정 PNG 묶음</button></div>
+ </aside>
+</div>
+<p class="caption">정면용 얕은 메시 · 10개 본 · 6개 얼굴 변형 · 9개 애니메이션. 외모를 다시 생성하지 않고 같은 모델을 움직입니다.</p>
+</main>
+<script type="module">
+import * as THREE from 'three';
+import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
+import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
+import {zipSync,strToU8} from './vendor/fflate.js';
+
+const stage=document.getElementById('stage'),busy=document.getElementById('busy'),status=document.getElementById('status');
+const renderer=new THREE.WebGLRenderer({alpha:true,antialias:true,preserveDrawingBuffer:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.setClearColor(0xffffff,0);stage.prepend(renderer.domElement);
+renderer.domElement.setAttribute('role','img');renderer.domElement.setAttribute('aria-label','Malo 고정 외모 2.5D 캐릭터');
+const scene=new THREE.Scene();const camera=new THREE.OrthographicCamera(-.8,.8,1.05,-1.05,.1,20);camera.position.set(0,.9,4);camera.lookAt(0,.9,0);
+const controls=new OrbitControls(camera,renderer.domElement);controls.target.set(0,.9,0);controls.enablePan=false;controls.enableDamping=true;controls.minAzimuthAngle=-8*Math.PI/180;controls.maxAzimuthAngle=8*Math.PI/180;controls.minPolarAngle=Math.PI/2-.035;controls.maxPolarAngle=Math.PI/2+.035;controls.minZoom=.85;controls.maxZoom=2.6;
+const loader=new GLTFLoader(),cache=new Map();let current=null,mixer=null,action=null,activeMotion='idle',exporting=false,last=performance.now(),timer=0,loadVersion=0;
+const labels={idle:'호흡 · 눈 깜빡임',talk:'말하기',happy:'기쁨',confused:'갸웃',sad:'서운함',angry:'불만',nod:'끄덕이기',shake:'고개 흔들기',greeting:'인사하기'};
+const catalog=await fetch('./catalog.json').then(r=>r.json());
+const params=new URLSearchParams(location.search),embed=params.get('embed')==='1';
+if(embed){document.head.insertAdjacentHTML('beforeend','<style>body{background:transparent;overflow:hidden}.shell{padding:0;max-width:none}header,.panel,.caption,.stage-meta,.stage-footer{display:none}.layout{display:block}.stage{height:100vh;min-height:0;border:0;border-radius:0;background:transparent}.stage canvas{pointer-events:none}</style>');controls.enabled=false}
+function resize(){const w=stage.clientWidth,h=stage.clientHeight;renderer.setSize(w,h);camera.left=-1.06*w/h;camera.right=1.06*w/h;camera.top=1.06;camera.bottom=-1.06;camera.updateProjectionMatrix()}
+new ResizeObserver(resize).observe(stage);resize();
+async function loadCharacter(id){
+ const version=++loadVersion;
+ busy.hidden=false;status.classList.remove('error');
+ try{let model=cache.get(id);if(!model){const info=catalog.items.find(c=>c.id===id);const gltf=await loader.loadAsync(info.modelUrl);model={id,info,gltf};cache.set(id,model)}
+ if(version!==loadVersion)return;if(current)scene.remove(current.gltf.scene);current=model;scene.add(model.gltf.scene);mixer=new THREE.AnimationMixer(model.gltf.scene);
+ document.getElementById('characterName').textContent=model.info.name;document.getElementById('characterRole').textContent=model.info.role+' · 원본 외모 고정';
+ await setVariant('Hair',Number(document.getElementById('hair').value));await setVariant('Outfit',Number(document.getElementById('outfit').value));play(activeMotion);
+ status.textContent='고정 얼굴 · '+model.info.triangles.toLocaleString()+' 삼각형 · 9개 모션';busy.hidden=true;
+ }catch(error){status.classList.add('error');status.textContent='모델을 불러오지 못했어요: '+error.message;busy.textContent='모델 로딩 실패';throw error}
+}
+function play(name){if(!mixer)return;activeMotion=name;mixer.stopAllAction();mixer.setTime(0);const clip=current.gltf.animations.find(c=>c.name===name);if(!clip)return;action=mixer.clipAction(clip);action.reset().play();if(!document.getElementById('playing').checked)mixer.setTime(clip.duration/2);document.getElementById('motionLabel').textContent=labels[name]||name;for(const b of document.querySelectorAll('[data-emotion]'))b.setAttribute('aria-pressed',String(b.dataset.emotion===name));}
+async function setVariant(part,index){if(!current)return;const definition=current.gltf.parser.json.meshes.find(m=>m.name===part);const mapping=definition?.primitives[0].extensions?.KHR_materials_variants?.mappings.find(m=>m.variants.includes(index));if(!mapping)return;const material=await current.gltf.parser.getDependency('material',mapping.material);current.gltf.scene.traverse(mesh=>{if(mesh.isMesh&&mesh.name===part){mesh.material=material;mesh.material.needsUpdate=true}})}
+document.getElementById('character').addEventListener('change',e=>loadCharacter(e.target.value).catch(console.error));
+for(const button of document.querySelectorAll('[data-emotion]'))button.addEventListener('click',()=>{play(button.dataset.emotion);document.getElementById('gesture').value='idle'});
+document.getElementById('gesture').addEventListener('change',e=>play(e.target.value));
+document.getElementById('hair').addEventListener('change',e=>setVariant('Hair',Number(e.target.value)));
+document.getElementById('outfit').addEventListener('change',e=>setVariant('Outfit',Number(e.target.value)));
+document.getElementById('position').addEventListener('input',e=>{document.getElementById('playing').checked=false;if(action)mixer.setTime(Number(e.target.value)*action.getClip().duration)});
+if(matchMedia('(prefers-reduced-motion: reduce)').matches)document.getElementById('playing').checked=false;
+function frame(now){requestAnimationFrame(frame);const dt=Math.min(.05,(now-last)/1000);last=now;if(exporting)return;timer+=dt;if(mixer&&document.getElementById('playing').checked){mixer.update(dt);if(action)document.getElementById('position').value=action.time/action.getClip().duration}if(current&&document.getElementById('speaking').checked)current.gltf.scene.traverse(o=>{if(o.morphTargetInfluences)o.morphTargetInfluences[5]=.15+.65*Math.abs(Math.sin(timer*10))});controls.update();scene.updateMatrixWorld(true);renderer.render(scene,camera)}requestAnimationFrame(frame);
+function download(bytes,name,type){const url=URL.createObjectURL(new Blob([bytes],{type}));const a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),10000)}
+function png(){return new Promise(resolve=>renderer.domElement.toBlob(async blob=>resolve(new Uint8Array(await blob.arrayBuffer())),'image/png'))}
+document.getElementById('capture').addEventListener('click',async()=>{scene.updateMatrixWorld(true);renderer.render(scene,camera);download(await png(),`malo-${current.id}-${activeMotion}.png`,'image/png')});
+document.getElementById('exportAll').addEventListener('click',async()=>{
+ if(exporting)return;const saved=current.id,savedMotion=activeMotion,savedZoom=camera.zoom;exporting=true;const button=document.getElementById('exportAll');button.disabled=true;const files={},manifest=[];
+ try{camera.zoom=1;camera.position.set(0,.9,4);controls.target.set(0,.9,0);controls.update();renderer.setPixelRatio(1);renderer.setSize(768,1024,false);camera.left=-.795;camera.right=.795;camera.top=1.06;camera.bottom=-1.06;camera.updateProjectionMatrix();
+ for(const info of catalog.items){await loadCharacter(info.id);await setVariant('Hair',0);await setVariant('Outfit',3);for(const emotion of ['neutral','happy','confused','sad','angry']){play(emotion==='neutral'?'idle':emotion);mixer.setTime(emotion==='neutral'?0:1.2);scene.updateMatrixWorld(true);renderer.render(scene,camera);const path=`${info.id}/${emotion}.png`;files[path]=await png();manifest.push({assetKey:`characters/${info.id}/${emotion}`,file:path,identityHash:info.sourceIdentityHash});status.textContent=`표정 내보내는 중 · ${manifest.length}/20`;}}
+ files['manifest.json']=strToU8(JSON.stringify({pipeline:'deterministic-2.5d-render',items:manifest},null,2));download(zipSync(files,{level:0}),'malo-25d-baked-poses.zip','application/zip');
+ }catch(error){status.textContent='내보내기 실패: '+error.message;status.classList.add('error')}
+ finally{await loadCharacter(saved);play(savedMotion);camera.zoom=savedZoom;renderer.setPixelRatio(Math.min(devicePixelRatio,2));resize();exporting=false;button.disabled=false;last=performance.now()}
+});
+async function receive(event){try{const message=typeof event.data==='string'?JSON.parse(event.data):event.data;if(!message||typeof message!=='object')return;
+ if(message.type==='setCharacter'&&catalog.items.some(c=>c.id===message.characterId)){document.getElementById('character').value=message.characterId;await loadCharacter(message.characterId)}
+ if(message.type==='setEmotion'&&['neutral','happy','confused','sad','angry'].includes(message.emotion))play(message.emotion==='neutral'?'idle':message.emotion);
+ if(message.type==='setGesture'&&['idle','talk','nod','shake','greeting'].includes(message.gesture))play(message.gesture);
+ if(message.type==='setSpeaking')document.getElementById('speaking').checked=message.speaking===true;
+ }catch(error){console.warn('Malo model message ignored:',error.message)}}
+window.addEventListener('message',receive);document.addEventListener('message',receive);
+await loadCharacter(catalog.items.some(c=>c.id===params.get('character'))?params.get('character'):'girlfriend');
+if(embed&&window.ReactNativeWebView)window.ReactNativeWebView.postMessage(JSON.stringify({type:'modelReady',characterId:current.id}));
+</script>
+</body>
+</html>

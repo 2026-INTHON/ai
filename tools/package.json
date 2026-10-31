@@ -1,0 +1,7 @@
+{
+  "name": "malo-character-tools",
+  "private": true,
+  "scripts": {"prepare": "node prepare-viewer.cjs", "validate": "node validate-models.cjs"},
+  "dependencies": {"three": "0.187.0", "fflate": "0.8.2"},
+  "devDependencies": {"gltf-validator": "2.0.0-dev.3.10"}
+}

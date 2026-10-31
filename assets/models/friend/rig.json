@@ -1,0 +1,51 @@
+{
+  "id": "friend",
+  "name": "민준",
+  "role": "친구",
+  "height": 1.8,
+  "modelUrl": "./friend/friend.glb",
+  "canonicalUrl": "./friend/canonical.png",
+  "view": "front-2.5d",
+  "maxYawDegrees": 8,
+  "parts": [
+    "FaceBodyProps",
+    "Hair",
+    "Outfit"
+  ],
+  "morphTargets": [
+    "blink",
+    "smile",
+    "frown",
+    "browRaise",
+    "browFurrow",
+    "mouthOpen"
+  ],
+  "animations": [
+    "idle",
+    "talk",
+    "happy",
+    "confused",
+    "sad",
+    "angry",
+    "nod",
+    "shake",
+    "greeting"
+  ],
+  "sourceIdentityHash": "ac1de4bf5f8a3162b3230952e72c59595809a993f1f97a70a210942690bcadd8",
+  "vertices": 20304,
+  "triangles": 26506,
+  "bytes": 5287584,
+  "customization": {
+    "hair": [
+      "original",
+      "chestnut",
+      "black"
+    ],
+    "outfit": [
+      "original",
+      "navy",
+      "olive"
+    ]
+  },
+  "limitation": "Front-view relief mesh. Cosmetic presets currently change color, not haircut or garment silhouette."
+}

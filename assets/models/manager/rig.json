@@ -1,0 +1,51 @@
+{
+  "id": "manager",
+  "name": "한 부장",
+  "role": "부장님",
+  "height": 1.78,
+  "modelUrl": "./manager/manager.glb",
+  "canonicalUrl": "./manager/canonical.png",
+  "view": "front-2.5d",
+  "maxYawDegrees": 8,
+  "parts": [
+    "FaceBodyProps",
+    "Hair",
+    "Outfit"
+  ],
+  "morphTargets": [
+    "blink",
+    "smile",
+    "frown",
+    "browRaise",
+    "browFurrow",
+    "mouthOpen"
+  ],
+  "animations": [
+    "idle",
+    "talk",
+    "happy",
+    "confused",
+    "sad",
+    "angry",
+    "nod",
+    "shake",
+    "greeting"
+  ],
+  "sourceIdentityHash": "e666f0a0722dda61156f37d59fb81b9e3b25a8a438525e62746d8c58fea7af7b",
+  "vertices": 20072,
+  "triangles": 25992,
+  "bytes": 4901388,
+  "customization": {
+    "hair": [
+      "original",
+      "chestnut",
+      "black"
+    ],
+    "outfit": [
+      "original",
+      "navy",
+      "olive"
+    ]
+  },
+  "limitation": "Front-view relief mesh. Cosmetic presets currently change color, not haircut or garment silhouette."
+}

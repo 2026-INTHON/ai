@@ -1,0 +1,26 @@
+[
+  {
+    "id": "girlfriend",
+    "errors": 0,
+    "warnings": 0,
+    "messages": []
+  },
+  {
+    "id": "friend",
+    "errors": 0,
+    "warnings": 0,
+    "messages": []
+  },
+  {
+    "id": "manager",
+    "errors": 0,
+    "warnings": 0,
+    "messages": []
+  },
+  {
+    "id": "professor",
+    "errors": 0,
+    "warnings": 0,
+    "messages": []
+  }
+]

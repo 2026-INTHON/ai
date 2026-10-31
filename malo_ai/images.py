@@ -17,10 +17,10 @@ from .schemas import PersonaImageRequest
 MODEL = "gpt-image-2.5-flare"
 QUALITY, SIZE = "medium", "1024x1536"
 CHARACTERS = {
-    "girlfriend": "Seoyun, a fictional adult Korean woman in her mid-twenties, long dark brown hair with a small pink flower hairclip, cream cardigan over a white top, sage green trousers, holding an iced coffee",
-    "friend": "Minjun, a fictional adult Korean man in his mid-twenties, friendly short dark hair, dark knit beanie, navy casual sweater, beige trousers, canvas crossbody bag",
-    "manager": "Han, a fictional Korean male office manager in his forties, neat short black hair, rectangular black glasses, charcoal suit, white shirt, slightly loose navy tie, employee lanyard, holding a takeaway coffee",
-    "professor": "Professor Kim, a fictional Korean man in his fifties, neat salt-and-pepper hair, round glasses, warm brown jacket over a cream knit vest and light shirt, dark trousers, holding a closed book",
+    "girlfriend": "Seoyun, a stylish Korean woman in her mid-20s, long dark brown hair as chunky faceted strands with a small understated flower hairclip, small slightly half-lidded eyes, composed knowing expression; cropped textured ivory cardigan over a white top, high-waisted olive cargo trousers, black belt with a small silver key charm, understated silver earrings and low-profile sneakers; holding an iced latte, the other hand in a pocket",
+    "friend": "a laid-back young Korean guy in his 20s, the user's close friend, messy two-block haircut in chestnut brown as chunky faceted strands, a small silver earring, playful lopsided grin, oversized washed blue hoodie under an open olive green varsity jacket, loose grey sweatpants, chunky black and white sneakers, one hand waving casually and the other holding a smartphone, a canvas tote bag on one shoulder",
+    "manager": "Han, a Korean male office manager in his late 30s to early 40s, tousled angular black hair, narrow rectangular black glasses, small tired eyes and a dry reserved expression; slightly oversized charcoal blazer, crisp white shirt with loosened collar, relaxed navy tie, pleated wide charcoal trousers, black leather loafers, plain employee lanyard, a small silver key clip at the waist and a simple wristwatch; takeaway coffee in one hand, the other hand in a pocket; understated contemporary office streetwear",
+    "professor": "a Korean university professor in her 50s, short silver-grey bob haircut as chunky faceted strands, round tortoiseshell glasses, calm but sharp knowing look, a long camel trench coat over a cream turtleneck, wide navy trousers, brown leather loafers, holding a thick book and a red pen against her chest",
 }
 EXPRESSIONS = {
     "neutral": "a calm neutral attentive expression",
@@ -86,7 +86,8 @@ async def _call_openai(prompt: str, character: str, reference: bytes | None):
     path = "generations"
     if reference:
         path = "edits"
-        body["images"] = [{"image_url": "data:image/webp;base64," + base64.b64encode(reference).decode()}]
+        mime = "image/png" if reference.startswith(b"\x89PNG\r\n\x1a\n") else "image/webp"
+        body["images"] = [{"image_url": f"data:{mime};base64," + base64.b64encode(reference).decode()}]
     try:
         async with httpx.AsyncClient(timeout=httpx.Timeout(180, connect=10)) as client:
             response = await client.post("https://api.openai.com/v1/images/" + path,
@@ -114,18 +115,24 @@ async def _call_openai(prompt: str, character: str, reference: bytes | None):
 
 
 async def _generate(character: str, emotion: str, reference: bytes | None):
-    if reference:
+    if emotion != "neutral":
         prompt = ("Edit this exact Malo character portrait. Preserve the same adult person's identity, face shape, hair, clothing, accessories, "
-            "body proportions, pose, framing, colors and rendering style. Change ONLY the facial expression to " + EXPRESSIONS[emotion] + ". "
-            "Keep the full head and the same body visible, clean edges and transparent background. No text, logos or additional people.")
+            "the reference's stylized proportions, half-lidded anime eyes, tiny simplified nose and mouth, smooth face, sculpted hair, "
+            "matte material, pose, framing, colors and rendering style. "
+            "Change ONLY the facial expression to " + EXPRESSIONS[emotion] + ". Keep the full head and the same body visible, clean edges "
+            "and transparent background. Do not enlarge the head, eyes or cheeks. No text, logos or additional people.")
     else:
-        prompt = ("Create one premium 3D chibi character asset for Malo, a friendly mobile conversation practice game. "
+        prompt = ("Use the uploaded character lineup as the exact style reference for Malo. Match the face design, head-to-body ratio, "
+            "sculpted hair, clothing materials and lighting. Output only ONE character, not the lineup. "
             "Original fictional adult character: " + CHARACTERS[character] + ". Expression: " + EXPRESSIONS[emotion] + ". "
-            "Stylized collectible figurine with a slightly oversized head, expressive eyes, soft tactile fabric, polished anime-inspired "
-            "3D rendering, contemporary Korean everyday styling, soft studio light, friendly and slightly playful. "
+            "Preserve the corresponding character's appealing simplified anime face from the reference: restrained half-lidded almond eyes, "
+            "tiny simple nose and mouth, smooth unsegmented facial surfaces, sculpted chunky hair, slightly large head, slim stylized body. "
+            "Soft matte 3D figure rendering. Keep the source face appeal and individually styled outfits. "
+            "Do not reinterpret as a realistic person, introduce carved cheekbones, a long realistic nose, wrinkled skin, polygon-faceted "
+            "face planes, or fashion-model anatomy. Do not turn it into a baby-faced doll with giant glossy eyes or short chibi limbs. "
             "Single character centered, front three-quarter view facing the viewer, full head and body within frame, generous transparent "
             "margins, crisp silhouette. Transparent background. No room, ground, speech bubbles, text, logos or UI. Never photorealistic.")
-    digest = hashlib.sha256(json.dumps(["malo-chibi-v1", MODEL, QUALITY, SIZE, prompt,
+    digest = hashlib.sha256(json.dumps(["malo-reference-anime-v3", MODEL, QUALITY, SIZE, prompt,
         hashlib.sha256(reference).hexdigest() if reference else None], ensure_ascii=False).encode()).hexdigest()
     cached = _read_metadata(character, emotion)
     if cached and cached.get("requestHash") == digest:
@@ -140,7 +147,7 @@ async def _generate(character: str, emotion: str, reference: bytes | None):
     metadata = {"assetKey": f"characters/{character}/{emotion}", "assetId": asset_id, "characterId": character, "emotion": emotion,
         "model": MODEL, "quality": QUALITY, "size": SIZE, "mimeType": "image/webp", "provider": "openai", "isMock": False,
         "usage": usage, "estimatedCostUsd": cost, "createdAt": datetime.now(timezone.utc).isoformat(), "requestHash": digest,
-        "referenceAssetId": "i_" + hashlib.sha256(reference).hexdigest()[:40] if reference else None}
+        "referenceAssetId": "i_" + hashlib.sha256(reference).hexdigest()[:40] if reference and emotion != "neutral" else None}
     destination = _metadata_path(character, emotion)
     destination.parent.mkdir(parents=True, exist_ok=True)
     staging = destination.with_name(destination.name + "." + uuid4().hex + ".tmp")
@@ -151,7 +158,8 @@ async def _generate(character: str, emotion: str, reference: bytes | None):
 
 async def generate(request: PersonaImageRequest):
     async with _lock:
-        base = await _generate(request.characterId, "neutral", None)
+        style_file = Path(__file__).with_name("style-reference.png")
+        base = await _generate(request.characterId, "neutral", style_file.read_bytes() if style_file.is_file() else None)
         if request.emotion == "neutral":
             return base
         return await _generate(request.characterId, request.emotion, image_path(base["assetId"]).read_bytes())

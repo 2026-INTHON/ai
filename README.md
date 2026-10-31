@@ -4,6 +4,8 @@ Malo Backend가 호출하는 내부 FastAPI 서비스입니다. FE는 Backend AP
 
 **[배포 AI 문서](https://inthon-demo-20261031-dh.koreacentral.cloudapp.azure.com/ai/docs)** · [백엔드](https://github.com/2026-INTHON/backend)
 
+캐릭터의 기본 표현 방식은 **고정 원본을 리깅한 정면용 2.5D GLB**입니다. 표정마다 이미지를 다시 생성하지 않습니다. **[움직이는 미리보기](https://inthon-demo-20261031-dh.koreacentral.cloudapp.azure.com/models/)** · [모델·앱 연결 명세](docs/CHARACTERS-25D.md). 기존 이미지 API는 이전에 준비한 이미지의 호환 경로로 유지합니다.
+
 ## 파이프라인
 
 ```mermaid
@@ -46,7 +48,9 @@ flowchart LR
 - 톤은 **텍스트의 공손함**, 속도는 문자/단어 수 ÷ 녹음 길이, 멈춤은 PCM 낮은 음량 구간의 추정입니다. 감정 진단·발음 정확도 평가는 아닙니다. text/choice는 음성 지표가 없습니다.
 - LLM은 상태/체력/재화를 결정하지 않습니다. Backend만 결정합니다. 가상 '속마음'은 캐릭터 설정으로 모델의 내부 추론을 노출하지 않습니다.
 
-## OpenAI 이미지 생성
+## OpenAI 이미지 생성 (추가 원본 제작용)
+
+기본 4명은 `assets/models`의 고정 모델을 사용하세요. 아래 API를 표정·동작마다 호출하지 않습니다. 추가 원본이 필요할 때만 운영자가 사용하며, 현재 일일 생성 한도를 초기화하거나 우회하지 않습니다. 스타일 레퍼런스는 `malo_ai/style-reference.png`이고 기존 이미지 캐시는 자동 교체하지 않습니다.
 
 기본은 **medium / 1024×1536 / 투명 배경 WebP / 요청당 1장**입니다. 캐릭터 4명과 표정 5가지로 범위를 고정했습니다. `neutral`을 먼저 생성하고 나머지는 그 기본 이미지를 참조하는 `/images/edits` 요청으로 만들어 얼굴·의상·구도를 유지합니다. 임의 프롬프트나 high/max 품질을 앱에서 전달할 수 없습니다.
 
