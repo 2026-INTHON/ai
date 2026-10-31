@@ -98,6 +98,32 @@ class ImageOption(Model):
     tags: list[str] = Field(default_factory=list,max_length=20)
 
 
+class CharacterProfile(Model):
+    age: str = Field(max_length=80)
+    role: str = Field(max_length=200)
+    occupation: str = Field(max_length=200)
+    introduction: str = Field(max_length=800)
+    relationship: str = Field(max_length=500)
+    values: list[str] = Field(max_length=10)
+    traits: list[str] = Field(max_length=10)
+    likes: list[str] = Field(max_length=10)
+    dislikes: list[str] = Field(max_length=10)
+    hobbies: list[str] = Field(max_length=10)
+    speakingStyle: str = Field(max_length=800)
+    sampleLines: list[str] = Field(max_length=8)
+
+
+class PersonaContext(Model):
+    characterId: str = Field(max_length=60)
+    personalityId: Literal['calm', 'playful', 'strict']
+    revision: str = Field(max_length=80)
+    name: str = Field(max_length=80)
+    short: str = Field(max_length=400)
+    description: str = Field(max_length=800)
+    profile: CharacterProfile
+    dialogueRules: list[str] = Field(max_length=16)
+
+
 class EvaluationRequest(Model):
     mode: Literal["mock", "live"] = "mock"
     imageOptions: list[ImageOption] = Field(default_factory=list,max_length=32)
@@ -113,6 +139,13 @@ class EvaluationRequest(Model):
     allowedRoutes: list[str] = Field(default_factory=list, max_length=2)
     allowedEndings: list[str] = Field(default_factory=list, max_length=3)
     subtitleLanguage: Literal['en','ja','zh','vi','es','id','ko']='en'
+    persona: PersonaContext | None = None
+
+    @model_validator(mode='after')
+    def matching_persona(self):
+        if self.persona and (self.persona.characterId != self.characterId or self.persona.personalityId != self.personalityId):
+            raise ValueError('Persona must match the current character and personality')
+        return self
 
 
 class Grade(Model):
