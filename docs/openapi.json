@@ -6,6 +6,95 @@
     "version": "0.1.0"
   },
   "paths": {
+    "/v1/exports/render": {
+      "post": {
+        "tags": [
+          "내보내기"
+        ],
+        "summary": "Render Export",
+        "operationId": "render_export_v1_exports_render_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExportRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ]
+      }
+    },
+    "/v1/exports/files/{asset_id}": {
+      "get": {
+        "tags": [
+          "내보내기"
+        ],
+        "summary": "Export File",
+        "operationId": "export_file_v1_exports_files__asset_id__get",
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "asset_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Asset Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/chapters/outline": {
       "post": {
         "tags": [
@@ -707,6 +796,41 @@
   },
   "components": {
     "schemas": {
+      "AffectState": {
+        "properties": {
+          "strain": {
+            "type": "integer",
+            "maximum": 6.0,
+            "minimum": 0.0,
+            "title": "Strain"
+          },
+          "emotion": {
+            "type": "string",
+            "enum": [
+              "angry",
+              "sad"
+            ],
+            "title": "Emotion"
+          },
+          "stage": {
+            "type": "string",
+            "enum": [
+              "hurt",
+              "guarded",
+              "softening"
+            ],
+            "title": "Stage"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "strain",
+          "emotion",
+          "stage"
+        ],
+        "title": "AffectState"
+      },
       "AudioMetrics": {
         "properties": {
           "durationMs": {
@@ -1143,6 +1267,16 @@
       },
       "Evaluation": {
         "properties": {
+          "offenseSeverity": {
+            "type": "string",
+            "enum": [
+              "mild",
+              "serious",
+              "severe"
+            ],
+            "title": "Offenseseverity",
+            "default": "serious"
+          },
           "repairAction": {
             "type": "string",
             "enum": [
@@ -1426,6 +1560,16 @@
       },
       "EvaluationRequest": {
         "properties": {
+          "affect": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AffectState"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "repair": {
             "anyOf": [
               {
@@ -1603,6 +1747,70 @@
           "text"
         ],
         "title": "EvaluationRequest"
+      },
+      "ExportRequest": {
+        "properties": {
+          "exportId": {
+            "type": "string",
+            "pattern": "^[a-f0-9-]{36}$",
+            "title": "Exportid"
+          },
+          "format": {
+            "type": "string",
+            "enum": [
+              "video",
+              "pdf"
+            ],
+            "title": "Format"
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 200,
+            "title": "Title"
+          },
+          "subtitle": {
+            "type": "string",
+            "maxLength": 300,
+            "title": "Subtitle",
+            "default": ""
+          },
+          "backgroundUrl": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Backgroundurl"
+          },
+          "frames": {
+            "items": {
+              "$ref": "#/components/schemas/ReplayFrame"
+            },
+            "type": "array",
+            "maxItems": 302,
+            "title": "Frames"
+          },
+          "sections": {
+            "items": {
+              "$ref": "#/components/schemas/ReportSection"
+            },
+            "type": "array",
+            "maxItems": 810,
+            "title": "Sections"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "exportId",
+          "format",
+          "title"
+        ],
+        "title": "ExportRequest"
       },
       "HTTPValidationError": {
         "properties": {
@@ -2140,6 +2348,125 @@
         ],
         "title": "Perspective"
       },
+      "ReplayFrame": {
+        "properties": {
+          "speaker": {
+            "type": "string",
+            "enum": [
+              "npc",
+              "learner",
+              "score"
+            ],
+            "title": "Speaker"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 100,
+            "title": "Name"
+          },
+          "text": {
+            "type": "string",
+            "maxLength": 4000,
+            "title": "Text"
+          },
+          "subtitle": {
+            "type": "string",
+            "maxLength": 2000,
+            "title": "Subtitle",
+            "default": ""
+          },
+          "imageUrl": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Imageurl"
+          },
+          "audioAssetId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^a_[a-f0-9]{40}$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Audioassetid"
+          },
+          "mark": {
+            "type": "string",
+            "maxLength": 1,
+            "title": "Mark",
+            "default": ""
+          },
+          "lives": {
+            "type": "integer",
+            "maximum": 3.0,
+            "minimum": 0.0,
+            "title": "Lives",
+            "default": 3
+          },
+          "progress": {
+            "type": "string",
+            "maxLength": 30,
+            "title": "Progress",
+            "default": ""
+          },
+          "emotion": {
+            "type": "string",
+            "enum": [
+              "neutral",
+              "happy",
+              "angry",
+              "sad",
+              "confused"
+            ],
+            "title": "Emotion",
+            "default": "neutral"
+          },
+          "action": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Action"
+          },
+          "cues": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array",
+                "maxItems": 5
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cues"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "speaker",
+          "name",
+          "text"
+        ],
+        "title": "ReplayFrame"
+      },
       "ReportRequest": {
         "properties": {
           "language": {
@@ -2185,6 +2512,30 @@
           "recordedResult"
         ],
         "title": "ReportRequest"
+      },
+      "ReportSection": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "maxLength": 200,
+            "title": "Title"
+          },
+          "lines": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 20,
+            "title": "Lines"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "title",
+          "lines"
+        ],
+        "title": "ReportSection"
       },
       "Scenario": {
         "properties": {
@@ -2407,6 +2758,22 @@
       },
       "SynthesisRequest": {
         "properties": {
+          "recoveryStage": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "hurt",
+                  "guarded",
+                  "softening"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Recoverystage"
+          },
           "text": {
             "type": "string",
             "maxLength": 1400,

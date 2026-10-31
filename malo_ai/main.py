@@ -11,7 +11,7 @@ from fastapi import Depends, FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.security import APIKeyHeader
 
-from . import audio, providers, images, chapters, realtime, subtitles, reports
+from . import audio, providers, images, chapters, realtime, subtitles, reports, exports
 from .schemas import Evaluation, EvaluationRequest, HintRequest, HintResult, ScenarioRequest, ScenarioResult, SynthesisRequest, SynthesisResult, TranscriptionResult, PersonaImageRequest, PersonaImageResult
 
 app = FastAPI(title="Malo AI Pipeline", version="0.1.0", root_path=os.getenv("MALO_AI_ROOT_PATH", ""),
@@ -28,6 +28,19 @@ def authorize(token: Annotated[str | None, Depends(service_header)]):
     if not token or not hmac.compare_digest(token, expected):
         raise HTTPException(401, {"code": "AI_UNAUTHORIZED", "message": "AI 서비스 토큰이 필요합니다.", "retryable": False})
 
+
+@app.post('/v1/exports/render', dependencies=[Depends(authorize)], tags=['내보내기'])
+async def render_export(request:exports.ExportRequest):
+    try:return await exports.render(request)
+    except HTTPException:raise
+    except Exception as exc:
+        raise HTTPException(502,{'code':'EXPORT_RENDER_FAILED','message':'파일 생성에 실패했어요. 다시 시도해 주세요.','retryable':True}) from exc
+
+@app.get('/v1/exports/files/{asset_id}', dependencies=[Depends(authorize)], tags=['내보내기'])
+def export_file(asset_id:str):
+    path=exports.file_path(asset_id)
+    if not path.is_file():raise HTTPException(404,{'code':'EXPORT_NOT_FOUND','message':'파일을 다시 만들어 주세요.','retryable':True})
+    return FileResponse(path,media_type='video/mp4' if path.suffix=='.mp4' else 'application/pdf',headers={'Cache-Control':'private, no-store'})
 
 @app.post('/v1/chapters/outline', dependencies=[Depends(authorize)], tags=['챕터 생성'])
 async def chapter_outline(request: chapters.ChapterRequest):
