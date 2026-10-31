@@ -2101,7 +2101,7 @@
               "type": "object"
             },
             "type": "array",
-            "maxItems": 8,
+            "maxItems": 100,
             "minItems": 1,
             "title": "Nodes"
           },
