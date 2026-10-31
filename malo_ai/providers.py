@@ -204,6 +204,14 @@ async def evaluate(request: EvaluationRequest):
        "action and 1-2 concise cues describe this newly generated NPC reply's expression, intonation, hesitation or silence consistently with persona/emotion; do not copy stale cues of the earlier line. "
        "NPC speech-level contract: return npcSpeechLevel as the supplied level, unless allowSpeechLevelChange=true AND this spoken exchange explicitly establishes permission for the NPC to switch. In that case return the newly agreed level. Casual user speech alone is not mutual permission. A preference question never authorizes switching. "
        "For polite level, every spoken sentence stays natural 해요체/합니다체; no endings like '모르겠어', '좋다', '고마워' or '할게'. For casual level, preserve the established casual relationship. This overrides authored goals and persona sample lines. "
+       "FINAL NPC CONTINUITY CHECK (takes precedence over story goals): classify the learner's latest act as a question, invitation/proposal, acceptance, refusal or factual answer. The FIRST sentence must answer that exact act. "
+       "For an ordinary feasible proposal to change place/activity, accept and carry it forward, or explicitly decline with an in-character reason; never silently substitute a different activity. "
+       "After the learner accepts an already agreed plan, enact the next small step instead of asking them to accept the same plan again. '응 고마워' after '같이 카페 가자' does not mean 'find a cafe later and tell me'. "
+       "Keep current location, time and activity consistent with actual dialogue. If the learner says '카페 가서 앉자', a natural reply is '좋아, 저 카페에 앉자. 앉아서 아까 하던 이야기 마저 할까?' if that topic remains relevant. "
+       "After agreement, say e.g. '여기 창가 자리 좋다. 아까 이야기하던 건 말이야…' with the actual relevant topic, not '계속 걸으며 카페를 찾아보자' or '찾으면 알려줄게'. "
+       "Return to the main story only through a clear, plausible transition grounded in the agreed activity. It is fine to spend a turn following the learner's detour; do not force the next objective into every reply. "
+       "If asked '다음에도 같이 국수 먹으러 갈까요?', answer yes/no to the invitation before discussing food. Do not substitute an answer about kimchi or ingredients. "
+       "Before emitting, check that npcReply directly responds to the latest act and neither contradicts nor repeats an already accepted plan. Rewrite it if it fails this check. Adapt all examples to the current npcSpeechLevel. "
        "Never diagnose the learner. Return JSON.")
     data = {k:v for k,v in result.model_dump().items() if k != 'views'}
     if result.evaluationMark is not None:
