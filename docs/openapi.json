@@ -1269,7 +1269,8 @@
             "type": "string",
             "maxLength": 600,
             "minLength": 1,
-            "title": "Betterexpression"
+            "title": "Betterexpression",
+            "description": "A suggested improved LEARNER reply, never the character response."
           },
           "reason": {
             "type": "string",
@@ -1281,7 +1282,8 @@
             "type": "string",
             "maxLength": 800,
             "minLength": 1,
-            "title": "Npcreply"
+            "title": "Npcreply",
+            "description": "The CHARACTER speaks next: directly answer the learner, never repeat their question or betterExpression."
           },
           "emotion": {
             "type": "string",
