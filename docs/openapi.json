@@ -149,7 +149,51 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Request"
+                "$ref": "#/components/schemas/malo_ai__realtime__Request"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ]
+      }
+    },
+    "/v1/subtitles": {
+      "post": {
+        "tags": [
+          "자막"
+        ],
+        "summary": "Translate Subtitles",
+        "operationId": "translate_subtitles_v1_subtitles_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/malo_ai__subtitles__Request"
               }
             }
           },
@@ -858,6 +902,12 @@
             ],
             "title": "Endingid"
           },
+          "npcReplySubtitle": {
+            "type": "string",
+            "maxLength": 1600,
+            "title": "Npcreplysubtitle",
+            "default": ""
+          },
           "outcome": {
             "type": "string",
             "enum": [
@@ -1076,6 +1126,20 @@
             "type": "array",
             "maxItems": 3,
             "title": "Allowedendings"
+          },
+          "subtitleLanguage": {
+            "type": "string",
+            "enum": [
+              "en",
+              "ja",
+              "zh",
+              "vi",
+              "es",
+              "id",
+              "ko"
+            ],
+            "title": "Subtitlelanguage",
+            "default": "en"
           }
         },
         "additionalProperties": false,
@@ -1447,31 +1511,6 @@
           "cue"
         ],
         "title": "Perspective"
-      },
-      "Request": {
-        "properties": {
-          "pack": {
-            "type": "string",
-            "enum": [
-              "ko",
-              "en"
-            ],
-            "title": "Pack",
-            "default": "ko"
-          },
-          "userId": {
-            "type": "string",
-            "maxLength": 100,
-            "minLength": 1,
-            "title": "Userid"
-          }
-        },
-        "additionalProperties": false,
-        "type": "object",
-        "required": [
-          "userId"
-        ],
-        "title": "Request"
       },
       "Scenario": {
         "properties": {
@@ -1871,6 +1910,64 @@
           "type"
         ],
         "title": "ValidationError"
+      },
+      "malo_ai__realtime__Request": {
+        "properties": {
+          "pack": {
+            "type": "string",
+            "enum": [
+              "ko",
+              "en"
+            ],
+            "title": "Pack",
+            "default": "ko"
+          },
+          "userId": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Userid"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "userId"
+        ],
+        "title": "Request"
+      },
+      "malo_ai__subtitles__Request": {
+        "properties": {
+          "language": {
+            "type": "string",
+            "enum": [
+              "en",
+              "ja",
+              "zh",
+              "vi",
+              "es",
+              "id",
+              "ko"
+            ],
+            "title": "Language",
+            "default": "en"
+          },
+          "texts": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 20,
+            "minItems": 1,
+            "title": "Texts"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "texts"
+        ],
+        "title": "Request"
       }
     },
     "securitySchemes": {

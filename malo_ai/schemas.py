@@ -97,11 +97,13 @@ class EvaluationRequest(Model):
     audioMetrics: AudioMetrics | None = None
     allowedRoutes: list[str] = Field(default_factory=list, max_length=2)
     allowedEndings: list[str] = Field(default_factory=list, max_length=3)
+    subtitleLanguage: Literal['en','ja','zh','vi','es','id','ko']='en'
 
 
 class Grade(Model):
     routeId: str | None = None
     endingId: str | None = None
+    npcReplySubtitle: str = Field(default='',max_length=1600)
     outcome: Literal["correct", "misunderstanding", "clarify"]
     confidence: float = Field(ge=0, le=1)
     toneScore: int = Field(ge=0, le=100)
