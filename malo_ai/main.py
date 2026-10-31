@@ -11,7 +11,7 @@ from fastapi import Depends, FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.security import APIKeyHeader
 
-from . import audio, providers, images
+from . import audio, providers, images, chapters, realtime
 from .schemas import Evaluation, EvaluationRequest, HintRequest, HintResult, ScenarioRequest, ScenarioResult, SynthesisRequest, SynthesisResult, TranscriptionResult, PersonaImageRequest, PersonaImageResult
 
 app = FastAPI(title="Malo AI Pipeline", version="0.1.0", root_path=os.getenv("MALO_AI_ROOT_PATH", ""),
@@ -27,6 +27,30 @@ def authorize(token: Annotated[str | None, Depends(service_header)]):
         return
     if not token or not hmac.compare_digest(token, expected):
         raise HTTPException(401, {"code": "AI_UNAUTHORIZED", "message": "AI 서비스 토큰이 필요합니다.", "retryable": False})
+
+
+@app.post('/v1/chapters/outline', dependencies=[Depends(authorize)], tags=['챕터 생성'])
+async def chapter_outline(request: chapters.ChapterRequest):
+    return await chapters.outline(request)
+
+
+@app.post('/v1/chapters/lesson', dependencies=[Depends(authorize)], tags=['챕터 생성'])
+async def chapter_lesson(request: chapters.LessonRequest):
+    return await chapters.lesson(request)
+
+
+class BackgroundRequest(chapters.Model):
+    description: str = chapters.Field(min_length=2, max_length=400)
+
+
+@app.post('/v1/chapters/background', dependencies=[Depends(authorize)], tags=['챕터 생성'])
+async def chapter_background(request: BackgroundRequest):
+    return await chapters.background(request.description)
+
+
+@app.post('/v1/speech/realtime-session', dependencies=[Depends(authorize)], tags=['STT'])
+async def realtime_session(request: realtime.Request):
+    return await realtime.create(request)
 
 
 @app.exception_handler(HTTPException)
