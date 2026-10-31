@@ -19,7 +19,7 @@ from .learning_policy import DIALOGUE_STYLE
 
 # Generate the character's response before learner corrections, so a suggested
 # learner sentence is not accidentally continued as the NPC's own dialogue.
-_dialogue_fields = ('repairAction', 'repairIssue', 'npcSpeechLevel', 'npcReply', 'emotion', 'gesture', 'action', 'cues', 'npcReplySubtitle')
+_dialogue_fields = ('repairAction', 'repairIssue', 'offenseSeverity', 'npcSpeechLevel', 'npcReply', 'emotion', 'gesture', 'action', 'cues', 'npcReplySubtitle')
 FastGrade = create_model('FastGrade', **{k: (Grade.model_fields[k].annotation, Grade.model_fields[k]) for k in [*_dialogue_fields, *(k for k in Grade.model_fields if k not in (*_dialogue_fields, 'views'))]})
 
 DATA_DIR = Path(os.getenv("MALO_AI_DATA_DIR", ".data"))
@@ -156,6 +156,7 @@ async def evaluate(request: EvaluationRequest):
         "pack": request.pack, "characterId": request.characterId, "personalityId": request.personalityId,
         "situation": request.situation, "learningGoal": 'Resolve the pending apology or clarification; the story checkpoint is paused.' if request.repair else request.node.goal, "npcText": request.node.npcText,
         "repair": request.repair.model_dump() if request.repair else None,
+        "affect": request.affect.model_dump() if request.affect else None,
         # Scripted answers assume one particular learner reply. They are not live dialogue facts.
         "nextCheckpoint":{"goal":request.nextCheckpoint.goal} if request.nextCheckpoint and not request.repair else None,
         "cues":[cue.model_dump() for cue in request.node.cues],
@@ -298,6 +299,8 @@ def girlfriend_voice(request: SynthesisRequest):
         emotion = "Cold contempt and disbelief: emotionally distant, low, clipped phrases, a sharp questioning inflection. Do not sound cheerful."
     if request.reaction == "sobbing" and request.emotion == "sad":
         emotion = "Tearful and deeply hurt: a slight tremble and breath catching between phrases, while keeping every word intelligible."
+    if request.recoveryStage in {'guarded', 'softening'}:
+        emotion += " An apology has been accepted but warmth returns gradually: restrained, slightly cautious and softening, without a cheerful smile or laughter."
     language = "native Korean with contemporary Seoul conversational intonation" if request.pack == "ko" else "natural conversational English"
     instructions = (
         f"Act as a fictional young adult woman in her twenties, speaking {language} directly to the other person. "
@@ -323,6 +326,9 @@ def typecast_voice(request: SynthesisRequest):
     # Keep the selected young voice's identity; strong anger/low-tone acting sounds much older.
     if request.characterId=='girlfriend' and request.emotion=='angry':
         preset,intensity=('normal',1.0) if request.reaction=='contempt' else ('angry',.45)
+    if request.recoveryStage in {'guarded','softening'}:
+        if preset in {'toneup','happy'}:preset,intensity='normal',1.0
+        elif preset in {'angry','sad','tonedown'}:intensity=min(intensity,.65 if request.recoveryStage=='guarded' else .4)
     tempo=min(2,max(.5,request.speed*(1.0 if request.characterId=='professor' else {'playful':1.06,'calm':1.0,'strict':1.03}[personality])))
     return voice,{'emotion_type':'preset','emotion_preset':preset,'emotion_intensity':intensity},round(tempo,3)
 

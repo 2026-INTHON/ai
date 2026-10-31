@@ -148,7 +148,14 @@ class DialogueRepair(Model):
     resumeNpcText: str = Field(max_length=2000)
 
 
+class AffectState(Model):
+    strain: int = Field(ge=0, le=6)
+    emotion: Literal['angry', 'sad']
+    stage: Literal['hurt', 'guarded', 'softening']
+
+
 class EvaluationRequest(Model):
+    affect: AffectState | None = None
     repair: DialogueRepair | None = None
     mode: Literal["mock", "live"] = "mock"
     imageOptions: list[ImageOption] = Field(default_factory=list,max_length=32)
@@ -178,6 +185,7 @@ class EvaluationRequest(Model):
 
 
 class Grade(Model):
+    offenseSeverity: Literal['mild', 'serious', 'severe'] = 'serious'
     repairAction: Literal['none', 'request_apology', 'request_clarification', 'continue', 'resolved'] = 'none'
     repairIssue: str = Field(default='', max_length=400)
     npcSpeechLevel: Literal['polite','casual'] | None = None
@@ -220,6 +228,7 @@ class HintRequest(Model):
 
 
 class SynthesisRequest(Model):
+    recoveryStage: Literal['hurt', 'guarded', 'softening'] | None = None
     text: str = Field(min_length=1, max_length=1400)
     pack: Pack = "ko"
     characterId: str = Field(default="professor", max_length=60)
