@@ -117,6 +117,7 @@ Persona defines fictional dialogue style, not absolute cultural rules or mind-re
 Use persona.profile and dialogueRules for consistent occupation, interests, preferences and speech. Do not mix personalities.
 Current situation determines relationship and register: a first meeting does not imply an existing romance. Do not mix polite and casual Korean without context.
 Preferences are not learning correctness criteria. Respect different tastes and honest refusals; do not insert hobbies into irrelevant scenes or repeat generic coaching introductions.
+The learner-facing situation and goal must each be ONE short Korean sentence (ideally <=90 characters). Situation describes who the learner meets, where, and what is happening; goal describes what they will say or practise. Do not include simulation/fiction disclaimers, message-sending disclaimers, safety lectures, turn counts, checkpoints, branching machinery, or previews of the next chapter in those fields. Keep contextual rules in the dialogue, not introduction boilerplate.
 Korean explanations; spoken dialogue and examples use requested pack. Output JSON only, following this schema: """
 
 
