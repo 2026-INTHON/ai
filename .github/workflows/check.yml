@@ -46,6 +46,10 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          current=$(gh api repos/${GITHUB_REPOSITORY}/git/ref/heads/main --jq .object.sha)
+          if [ "$current" != "$GITHUB_SHA" ]; then
+            echo Superseded main commit; exit 0
+          fi
           tag="deploy-${GITHUB_SHA}"
           if gh release view "$tag" >/dev/null 2>&1; then
             echo "Release already exists; leaving its asset immutable."
