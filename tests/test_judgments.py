@@ -27,6 +27,8 @@ class JudgmentTests(unittest.TestCase):
                 self.assertIn('네 교수님. 내일 2시에 갈게요.',instruction)
                 self.assertIn('교수님, 내일 수업은 휴강인가요?',instruction)
                 self.assertIn('교수님, 내일... 아니 그때 제가... 시간...',instruction)
+                self.assertIn('그래서 뭐 어떡하라고?',instruction)
+                self.assertIn('genuine polite',instruction)
 
     def test_context_image_is_allowlisted_and_fluent_korean_is_not_native_language_help(self):
         option={'assetKey':'characters/professor/time_aware','emotion':'neutral','gesture':'idle','useWhen':'다음 일정 확인','pose':'checking_watch'}
