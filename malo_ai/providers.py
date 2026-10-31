@@ -79,9 +79,21 @@ def strict_schema(value):
     return result
 
 
+def structured_response(schema:type[BaseModel],data:dict)->BaseModel:
+    if data.get('status') not in {None,'completed'}:
+        raise ValueError('Structured response is incomplete')
+    messages=[item for item in data.get('output',[]) if item.get('type')=='message' and item.get('phase')!='commentary']
+    finals=[item for item in messages if item.get('phase')=='final_answer']
+    candidates=finals or messages
+    if not candidates or candidates[-1].get('status') not in {None,'completed'}:
+        raise ValueError('No completed final message')
+    content=''.join(part.get('text','') for part in candidates[-1].get('content',[]) if part.get('type')=='output_text')
+    return schema.model_validate_json(content)
+
+
 async def json_completion(schema: type[BaseModel], payload: dict, instruction: str) -> tuple[BaseModel, str]:
     reserve_quota("llm_requests", 1, int(os.getenv("MALO_LLM_DAILY_LIMIT", "1000")))
-    system = instruction + "\nReturn only valid JSON matching this schema:\n" + json.dumps(schema.model_json_schema(), ensure_ascii=False)
+    system = instruction + "\nEmit exactly one final_answer JSON object, with no intermediate commentary, markdown or repeated drafts. Match this schema:\n" + json.dumps(schema.model_json_schema(), ensure_ascii=False)
     lablup_url, lablup_key = os.getenv("LABLUP_BASE_URL"), os.getenv("LABLUP_API_KEY")
     batch = schema.__name__ in {'Outline', 'Lesson','ReportDraft'}
     tokens = 12500 if schema.__name__ == 'Lesson' else 7500 if schema.__name__=='ReportDraft' else 4000 if schema is Scenario or batch else 1500 if schema.__name__ == 'FastGrade' else 3000
@@ -102,15 +114,20 @@ async def json_completion(schema: type[BaseModel], payload: dict, instruction: s
         if not key:
             raise HTTPException(503, {"code": "LLM_NOT_CONFIGURED", "message": "LLM API 설정이 필요해요.", "retryable": True})
         try:
-            response = await client.post("https://api.openai.com/v1/responses", headers={"Authorization": "Bearer " + key, "OpenAI-Project": os.getenv("OPENAI_PROJECT", "")}, json={
-                "model": os.getenv("OPENAI_FALLBACK_MODEL", "gpt-6-luna"),
-                "input": [{"role": "system", "content": system}, {"role": "user", "content": json.dumps(payload, ensure_ascii=False)}],
-                "reasoning": {"effort": "none"}, "text": {"format": {"type": "json_schema", "name":schema.__name__, "strict":True, "schema":strict_schema(schema.model_json_schema())}},
-                "max_output_tokens": tokens, "store": False,
-            })
-            response.raise_for_status()
-            content = "".join(part.get("text", "") for item in response.json().get("output", []) for part in item.get("content", []) if part.get("type") == "output_text")
-            return schema.model_validate_json(content), "openai"
+            for attempt in range(2):
+                response = await client.post("https://api.openai.com/v1/responses", headers={"Authorization": "Bearer " + key, "OpenAI-Project": os.getenv("OPENAI_PROJECT", "")}, json={
+                    "model": os.getenv("OPENAI_FALLBACK_MODEL", "gpt-6-luna"),
+                    "input": [{"role": "system", "content": system}, {"role": "user", "content": json.dumps(payload, ensure_ascii=False)}],
+                    "reasoning": {"effort": "none"}, "text": {"format": {"type": "json_schema", "name":schema.__name__, "strict":True, "schema":strict_schema(schema.model_json_schema())}},
+                    "max_output_tokens": tokens, "store": False,
+                })
+                response.raise_for_status()
+                try:
+                    return structured_response(schema,response.json()), "openai"
+                except ValueError:
+                    if attempt:raise
+                    # One real retry for invalid/incomplete output; never salvage a draft as a grade.
+                    reserve_quota("llm_requests",1,int(os.getenv("MALO_LLM_DAILY_LIMIT","1000")))
         except (httpx.HTTPError, ValueError, KeyError) as exc:
             # Diagnostic shape only: never log prompts, provider bodies, credentials or user speech.
             print('llm_response_rejected',schema.__name__,type(exc).__name__,
