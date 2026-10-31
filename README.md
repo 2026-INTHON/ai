@@ -117,3 +117,6 @@ The authoritative editable profiles live in backend `src/personas/{girlfriend,pr
 Live evaluation accepts optional typed `persona` context; character/personality IDs must match the turn. The same profile feeds chapter generation. Existing clients without context retain legacy guidance. Preferences shape dialogue, never override O/△/X/? assessment or penalize respectful disagreement. Situation/history determine intimacy and Korean speech register.
 Deploy this AI schema before the backend starts sending `persona`. Existing authored catalogue lines are not regenerated automatically.
 
+
+### Guide-language translations
+Korean dialogue remains Korean. `subtitleLanguage` controls translated NPC lines and coaching explanation language. `/v1/subtitles` supports Korean originals without an LLM call; other languages cache each source text independently in `subtitles-v2/`, including reordered and duplicate requests. The client currently offers Korean, Japanese, English and Simplified Chinese.
