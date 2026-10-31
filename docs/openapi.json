@@ -525,6 +525,56 @@
         ],
         "title": "Choice"
       },
+      "Clue": {
+        "properties": {
+          "k": {
+            "type": "string",
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "K"
+          },
+          "v": {
+            "type": "string",
+            "maxLength": 1200,
+            "minLength": 1,
+            "title": "V"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "k",
+          "v"
+        ],
+        "title": "Clue"
+      },
+      "Cue": {
+        "properties": {
+          "k": {
+            "type": "string",
+            "enum": [
+              "표정",
+              "억양",
+              "망설임",
+              "침묵"
+            ],
+            "title": "K"
+          },
+          "v": {
+            "type": "string",
+            "maxLength": 400,
+            "minLength": 1,
+            "title": "V"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "k",
+          "v"
+        ],
+        "title": "Cue"
+      },
       "Evaluation": {
         "properties": {
           "outcome": {
@@ -589,6 +639,34 @@
             ],
             "title": "Emotion"
           },
+          "native": {
+            "type": "boolean",
+            "title": "Native"
+          },
+          "action": {
+            "type": "string",
+            "maxLength": 400,
+            "minLength": 1,
+            "title": "Action"
+          },
+          "cues": {
+            "items": {
+              "$ref": "#/components/schemas/Cue"
+            },
+            "type": "array",
+            "maxItems": 5,
+            "minItems": 1,
+            "title": "Cues"
+          },
+          "views": {
+            "items": {
+              "$ref": "#/components/schemas/Perspective"
+            },
+            "type": "array",
+            "maxItems": 3,
+            "minItems": 2,
+            "title": "Views"
+          },
           "provider": {
             "type": "string",
             "title": "Provider"
@@ -626,6 +704,10 @@
           "reason",
           "npcReply",
           "emotion",
+          "native",
+          "action",
+          "cues",
+          "views",
           "provider",
           "isMock"
         ],
@@ -734,6 +816,15 @@
             "maxLength": 60,
             "minLength": 1,
             "title": "Characterid"
+          },
+          "step": {
+            "type": "integer",
+            "enum": [
+              1,
+              2
+            ],
+            "title": "Step",
+            "default": 2
           }
         },
         "additionalProperties": false,
@@ -746,12 +837,45 @@
       },
       "HintResult": {
         "properties": {
-          "thought": {
+          "nodeId": {
             "type": "string",
+            "title": "Nodeid"
+          },
+          "step": {
+            "type": "integer",
+            "enum": [
+              1,
+              2
+            ],
+            "title": "Step"
+          },
+          "clue": {
+            "items": {
+              "$ref": "#/components/schemas/Clue"
+            },
+            "type": "array",
+            "title": "Clue"
+          },
+          "thought": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Thought"
           },
           "tip": {
-            "type": "string",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Tip"
           },
           "source": {
@@ -763,6 +887,9 @@
         "additionalProperties": false,
         "type": "object",
         "required": [
+          "nodeId",
+          "step",
+          "clue",
           "thought",
           "tip",
           "source"
@@ -909,6 +1036,36 @@
           "createdAt"
         ],
         "title": "PersonaImageResult"
+      },
+      "Perspective": {
+        "properties": {
+          "who": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Who"
+          },
+          "meaning": {
+            "type": "string",
+            "maxLength": 1200,
+            "minLength": 1,
+            "title": "Meaning"
+          },
+          "cue": {
+            "type": "string",
+            "maxLength": 400,
+            "minLength": 1,
+            "title": "Cue"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "who",
+          "meaning",
+          "cue"
+        ],
+        "title": "Perspective"
       },
       "Scenario": {
         "properties": {
@@ -1082,6 +1239,37 @@
               }
             ],
             "title": "Nextnodeid"
+          },
+          "action": {
+            "type": "string",
+            "maxLength": 400,
+            "minLength": 1,
+            "title": "Action",
+            "default": "상대를 바라보며 대답을 기다린다."
+          },
+          "cues": {
+            "items": {
+              "$ref": "#/components/schemas/Cue"
+            },
+            "type": "array",
+            "maxItems": 5,
+            "title": "Cues"
+          },
+          "clue": {
+            "items": {
+              "$ref": "#/components/schemas/Clue"
+            },
+            "type": "array",
+            "maxItems": 5,
+            "title": "Clue"
+          },
+          "views": {
+            "items": {
+              "$ref": "#/components/schemas/Perspective"
+            },
+            "type": "array",
+            "maxItems": 3,
+            "title": "Views"
           }
         },
         "additionalProperties": false,

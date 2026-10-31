@@ -57,7 +57,11 @@ async def scenario(request: ScenarioRequest):
 
 @app.post("/v1/hints", response_model=HintResult, dependencies=[Depends(authorize)], tags=["속마음 힌트"])
 def hint(request: HintRequest):
-    return {"thought": request.node.hiddenThought, "tip": request.node.tip, "source": "fictional_character_goal"}
+    node = request.node
+    return {"nodeId": node.id, "step": request.step,
+        "clue": node.clue or [{"k": "주목 표현", "v": node.npcText}, {"k": "행동", "v": node.action}, {"k": "상황 단서", "v": node.goal}],
+        "thought": node.hiddenThought if request.step == 2 else None,
+        "tip": node.tip if request.step == 2 else None, "source": "fictional_character_goal"}
 
 
 @app.post("/v1/speech/transcribe", response_model=TranscriptionResult, dependencies=[Depends(authorize)], tags=["STT"])

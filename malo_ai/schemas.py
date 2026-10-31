@@ -15,6 +15,22 @@ class Choice(Model):
     text: str = Field(min_length=1, max_length=600)
 
 
+class Cue(Model):
+    k: Literal["표정", "억양", "망설임", "침묵"]
+    v: str = Field(min_length=1, max_length=400)
+
+
+class Clue(Model):
+    k: str = Field(min_length=1, max_length=80)
+    v: str = Field(min_length=1, max_length=1200)
+
+
+class Perspective(Model):
+    who: str = Field(min_length=1, max_length=100)
+    meaning: str = Field(min_length=1, max_length=1200)
+    cue: str = Field(min_length=1, max_length=400)
+
+
 class SceneNode(Model):
     id: str = Field(min_length=1, max_length=80)
     npcText: str = Field(min_length=1, max_length=800)
@@ -24,6 +40,11 @@ class SceneNode(Model):
     tip: str = Field(min_length=1, max_length=400)
     choices: list[Choice] = Field(min_length=2, max_length=4)
     nextNodeId: str | None
+    # Defaults keep old persisted BE scenarios readable during the rollout.
+    action: str = Field(default="상대를 바라보며 대답을 기다린다.", min_length=1, max_length=400)
+    cues: list[Cue] = Field(default_factory=list, max_length=5)
+    clue: list[Clue] = Field(default_factory=list, max_length=5)
+    views: list[Perspective] = Field(default_factory=list, max_length=3)
 
 
 class Scenario(Model):
@@ -86,6 +107,10 @@ class Grade(Model):
     reason: str = Field(min_length=1, max_length=600)
     npcReply: str = Field(min_length=1, max_length=800)
     emotion: Emotion
+    native: bool
+    action: str = Field(min_length=1, max_length=400)
+    cues: list[Cue] = Field(min_length=1, max_length=5)
+    views: list[Perspective] = Field(min_length=2, max_length=3)
 
 
 class Evaluation(Grade):
@@ -98,6 +123,7 @@ class Evaluation(Grade):
 class HintRequest(Model):
     node: SceneNode
     characterId: str = Field(min_length=1, max_length=60)
+    step: Literal[1, 2] = 2
 
 
 class SynthesisRequest(Model):
@@ -129,8 +155,11 @@ class ScenarioResult(Model):
 
 
 class HintResult(Model):
-    thought: str
-    tip: str
+    nodeId: str
+    step: Literal[1, 2]
+    clue: list[Clue]
+    thought: str | None
+    tip: str | None
     source: Literal["fictional_character_goal"]
 
 

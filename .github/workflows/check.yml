@@ -1,5 +1,5 @@
 name: AI checks
-on: [push, pull_request]
+on: [push, pull_request, workflow_dispatch]
 permissions:
   contents: read
 jobs:
@@ -7,6 +7,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
@@ -14,3 +16,43 @@ jobs:
       - run: pip install -r requirements.txt
       - run: python -m unittest discover -s tests -v
       - run: python scripts/export_openapi.py && git diff --exit-code docs/openapi.json
+
+  release:
+    needs: check
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    concurrency:
+      group: production-release
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Package tested source
+        run: |
+          git archive --format=tar HEAD > source.tar
+          python3 - <<'PY'
+          import json, os, tarfile, io
+          metadata = json.dumps({'repository': os.environ['GITHUB_REPOSITORY'], 'sha': os.environ['GITHUB_SHA'], 'ref': os.environ['GITHUB_REF']}).encode()
+          with tarfile.open('source.tar', 'a') as archive:
+              info = tarfile.TarInfo('deployment.json')
+              info.size = len(metadata)
+              archive.addfile(info, io.BytesIO(metadata))
+          PY
+          gzip source.tar
+      - name: Publish verified main release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          current=$(gh api repos/${GITHUB_REPOSITORY}/git/ref/heads/main --jq .object.sha)
+          if [ "$current" != "$GITHUB_SHA" ]; then
+            echo Superseded main commit; exit 0
+          fi
+          tag="deploy-${GITHUB_SHA}"
+          if gh release view "$tag" >/dev/null 2>&1; then
+            echo "Release already exists; leaving its asset immutable."
+          else
+            gh release create "$tag" source.tar.gz --target "$GITHUB_SHA" --title "Deploy ${GITHUB_SHA:0:12}" --notes "Verified main build. VM deployment agent applies this release and checks service health." --latest
+          fi

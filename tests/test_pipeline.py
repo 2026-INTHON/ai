@@ -1,17 +1,18 @@
+import asyncio
 import math
 import os
 import tempfile
 import unittest
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import AsyncMock, patch
 
 from fastapi.testclient import TestClient
 from pydantic import ValidationError
 
 from malo_ai.audio import audio_metrics
 from malo_ai.main import app
-from malo_ai.providers import mock_grade, reserve_quota
-from malo_ai.schemas import EvaluationRequest, Scenario
+from malo_ai.providers import evaluate, mock_grade, reserve_quota
+from malo_ai.schemas import EvaluationRequest, Grade, Scenario
 
 
 def node(id="start", next_id=None):
@@ -54,6 +55,51 @@ class PipelineTests(unittest.TestCase):
             response = client.get("/v1/persona-assets", headers={"X-AI-Service-Token": "test-service-token"})
             self.assertEqual(response.status_code, 200)
             self.assertEqual(len(response.json()["items"]), 20)
+
+    def test_native_language_answers_offer_target_expression_and_never_grade_as_mistakes(self):
+        base = {"pack": "ko", "characterId": "professor", "personalityId": "calm", "situation": "과제 기한", "node": node()}
+        for text in ["Could I submit it tomorrow?", "明日提出してもいいですか", "可以明天提交吗", "Tôi có thể nộp vào ngày mai không?"]:
+            grade = mock_grade(EvaluationRequest(**base, text=text))
+            self.assertTrue(grade.native)
+            self.assertEqual(grade.outcome, "clarify")
+            self.assertRegex(grade.betterExpression, r"[가-힣]")
+            self.assertTrue(grade.action and grade.cues)
+            self.assertGreaterEqual(len(grade.views), 2)
+        self.assertFalse(mock_grade(EvaluationRequest(**base, text="123")).native)
+        self.assertFalse(mock_grade(EvaluationRequest(**base, text="감사합니다. 내일 오후 5시에 제출하겠습니다.")).native)
+
+    def test_staged_hints_reveal_no_thought_or_solution_until_step_two_and_make_no_llm_call(self):
+        with patch.dict(os.environ, {"MALO_AI_SERVICE_TOKEN": "test-service-token", "MALO_ENV": "production"}), patch("malo_ai.providers.json_completion", new_callable=AsyncMock) as llm:
+            client = TestClient(app)
+            headers = {"X-AI-Service-Token": "test-service-token"}
+            payload = {"characterId": "professor", "node": node(), "step": 1}
+            first = client.post("/v1/hints", json=payload, headers=headers)
+            self.assertEqual(first.status_code, 200)
+            self.assertEqual(len(first.json()["clue"]), 3)
+            self.assertIsNone(first.json()["thought"])
+            self.assertIsNone(first.json()["tip"])
+            del payload["step"]
+            second = client.post("/v1/hints", json=payload, headers=headers)
+            self.assertEqual(second.json()["step"], 2)
+            self.assertEqual(second.json()["thought"], node()["hiddenThought"])
+            self.assertEqual(second.json()["tip"], node()["tip"])
+            self.assertEqual(client.post("/v1/hints", json={**payload, "step": 3}, headers=headers).status_code, 422)
+            llm.assert_not_called()
+
+    def test_live_evaluation_preserves_stage_directions_and_guards_native_answer(self):
+        request = EvaluationRequest(mode="live", pack="ko", characterId="professor", personalityId="calm", situation="과제 기한", node=node(), text="Could I submit it tomorrow?")
+        malicious_grade = mock_grade(request).model_copy(update={"native": False, "outcome": "misunderstanding", "confidence": 0.99})
+        with patch("malo_ai.providers.json_completion", new_callable=AsyncMock, return_value=(malicious_grade, "lablup")) as llm:
+            grade, provider = asyncio.run(evaluate(request))
+            self.assertEqual(provider, "lablup")
+            self.assertTrue(grade.native)
+            self.assertEqual(grade.outcome, "clarify")
+            self.assertEqual(grade.views, malicious_grade.views)
+            self.assertIn("native=true", llm.call_args.args[2])
+            invalid = grade.model_dump()
+            invalid["cues"] = [{"k": "unknown", "v": "bad"}]
+            with self.assertRaises(ValidationError):
+                Grade(**invalid)
 
 
 if __name__ == "__main__":
