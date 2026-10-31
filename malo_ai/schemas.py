@@ -141,7 +141,15 @@ class NextCheckpoint(Model):
     routeLines: dict[str, str] = Field(default_factory=dict)
 
 
+class DialogueRepair(Model):
+    kind: Literal['apology', 'clarification']
+    issue: str = Field(max_length=400)
+    triggerText: str = Field(max_length=1200)
+    resumeNpcText: str = Field(max_length=2000)
+
+
 class EvaluationRequest(Model):
+    repair: DialogueRepair | None = None
     mode: Literal["mock", "live"] = "mock"
     imageOptions: list[ImageOption] = Field(default_factory=list,max_length=32)
     livesRemaining: int = Field(default=3,ge=1,le=3)
@@ -170,6 +178,8 @@ class EvaluationRequest(Model):
 
 
 class Grade(Model):
+    repairAction: Literal['none', 'request_apology', 'request_clarification', 'continue', 'resolved'] = 'none'
+    repairIssue: str = Field(default='', max_length=400)
     npcSpeechLevel: Literal['polite','casual'] | None = None
     conversationComplete: bool = False
     imageAssetKey: str | None = Field(default=None,max_length=200)

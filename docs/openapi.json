@@ -1105,8 +1105,62 @@
         ],
         "title": "Cue"
       },
+      "DialogueRepair": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "apology",
+              "clarification"
+            ],
+            "title": "Kind"
+          },
+          "issue": {
+            "type": "string",
+            "maxLength": 400,
+            "title": "Issue"
+          },
+          "triggerText": {
+            "type": "string",
+            "maxLength": 1200,
+            "title": "Triggertext"
+          },
+          "resumeNpcText": {
+            "type": "string",
+            "maxLength": 2000,
+            "title": "Resumenpctext"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "kind",
+          "issue",
+          "triggerText",
+          "resumeNpcText"
+        ],
+        "title": "DialogueRepair"
+      },
       "Evaluation": {
         "properties": {
+          "repairAction": {
+            "type": "string",
+            "enum": [
+              "none",
+              "request_apology",
+              "request_clarification",
+              "continue",
+              "resolved"
+            ],
+            "title": "Repairaction",
+            "default": "none"
+          },
+          "repairIssue": {
+            "type": "string",
+            "maxLength": 400,
+            "title": "Repairissue",
+            "default": ""
+          },
           "npcSpeechLevel": {
             "anyOf": [
               {
@@ -1372,6 +1426,16 @@
       },
       "EvaluationRequest": {
         "properties": {
+          "repair": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DialogueRepair"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "mode": {
             "type": "string",
             "enum": [
