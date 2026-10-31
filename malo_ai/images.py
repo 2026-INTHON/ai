@@ -13,6 +13,8 @@ from fastapi import HTTPException
 
 from . import providers
 from .schemas import PersonaImageRequest
+from .schemas import Model,Emotion,Gesture
+from pydantic import Field
 
 MODEL = "gpt-image-2.5-flare"
 QUALITY, SIZE = "medium", "1024x1536"
@@ -61,6 +63,32 @@ def catalog():
                 "assetId": metadata["assetId"] if metadata else None, "imageUrl": None,
                 "provider": "openai" if metadata else None, "source": "pre_generated"})
     return {"generation": "openai_api_cached", "runtimeImageApiCalls": False, "items": items}
+
+
+class Variant(Model):
+    characterId: str
+    emotion: Emotion
+    gesture: Gesture
+    assetId: str=Field(pattern=r'^i_[a-f0-9]{40}$')
+
+
+def variants():
+    items=[{**item,'gesture':'idle'} for item in catalog()['items']]
+    seen={item['assetKey'] for item in items}
+    path=providers.DATA_DIR/'character-variants.json'
+    if path.is_file():
+        try:
+            for value in json.loads(path.read_text(encoding='utf-8')):
+                v=Variant.model_validate(value)
+                if v.characterId not in CHARACTERS or v.gesture=='idle' or not image_path(v.assetId).is_file():
+                    raise ValueError('Invalid registered variant')
+                key=f'characters/{v.characterId}/{v.emotion}/{v.gesture}'
+                if key in seen:raise ValueError('Duplicate variant key')
+                seen.add(key)
+                items.append({**v.model_dump(),'assetKey':key,'source':'pre_generated'})
+        except (ValueError,KeyError,TypeError) as exc:
+            raise HTTPException(503,{'code':'ASSET_MANIFEST_INVALID','message':'캐릭터 이미지 구성을 확인해야 해요.','retryable':True}) from exc
+    return {'renderMode':'image_variants','runtimeImageApiCalls':False,'items':items}
 
 
 def estimated_cost(usage: dict) -> float | None:

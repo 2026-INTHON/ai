@@ -20,6 +20,16 @@ def node(id="start", next_id=None):
 
 
 class PipelineTests(unittest.TestCase):
+    def test_soso_goal_achievement_keeps_legacy_outcome_consistent(self):
+        request=EvaluationRequest(mode='live',pack='ko',characterId='professor',personalityId='calm',situation='과제 기한',node=node(),text='내일 제출하겠습니다.')
+        result=mock_grade(request).model_copy(update={'reaction':'neutral','goalAchieved':True,'outcome':'misunderstanding','reasonSubtitle':'The core timing is clear, but it could be more precise.'})
+        with patch('malo_ai.providers.json_completion',new_callable=AsyncMock,return_value=(result,'test')):
+            grade,_=asyncio.run(evaluate(request))
+            self.assertEqual(grade.outcome,'correct')
+            self.assertEqual(grade.reaction,'neutral')
+            self.assertTrue(grade.goalAchieved)
+            self.assertIn('timing',grade.reasonSubtitle)
+
     def test_mock_grade_distinguishes_ambiguity_and_mistake(self):
         base = {"pack": "ko", "characterId": "professor", "personalityId": "calm", "situation": "과제 기한", "node": node()}
         good = mock_grade(EvaluationRequest(**base, text="교수님, 내일 오후 5시까지 제출하겠습니다."))
@@ -87,8 +97,8 @@ class PipelineTests(unittest.TestCase):
             llm.assert_not_called()
 
     def test_live_evaluation_preserves_stage_directions_and_guards_native_answer(self):
-        request = EvaluationRequest(mode="live", pack="ko", characterId="professor", personalityId="calm", situation="과제 기한", node=node(), text="Could I submit it tomorrow?")
-        malicious_grade = mock_grade(request).model_copy(update={"native": False, "outcome": "misunderstanding", "confidence": 0.99})
+        request = EvaluationRequest(mode="live", pack="ko", characterId="professor", personalityId="calm", situation="과제 기한", node=node(), text="Could I submit it tomorrow?", allowedRoutes=['direct'], allowedEndings=['happy'])
+        malicious_grade = mock_grade(request).model_copy(update={"native": False, "outcome": "correct", "confidence": 0.99})
         with patch("malo_ai.providers.json_completion", new_callable=AsyncMock, return_value=(malicious_grade, "lablup")) as llm:
             grade, provider = asyncio.run(evaluate(request))
             self.assertEqual(provider, "lablup")
