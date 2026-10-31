@@ -139,7 +139,7 @@ async def lesson(request: LessonRequest):
         "All other cue, goal and hint fields must stay compatible with either route. Endings happy/deferred/breakdown (one happy and two bad) are plausible localized outcomes. "
         "An appropriate expression may still receive a refusal: language success and story outcome are independent. Never promise romantic acceptance. "
         "The topic must match outline.lessons[index]. Retain chapter continuity; a nonfinal ending cannot contradict the next lesson's shared starting facts. "
-        "Do not end the dialogue in the middle of a sentence. Keep spoken utterances short and natural.")
+        "Keep every node concise: npcText <=50 Korean characters, goal <=40, goodExample <=80, hiddenThought <=50, tip <=55, action <=40. Exactly two short cues, three short clues and two views per node. Each view meaning <=60 characters. Retain user details in the outline and continuity instead of repeating the full background in each field. Do not end in the middle of a sentence.")
     await moderate(result.model_dump_json())
     return {"lesson": result.model_dump(), "provider": provider}
 
