@@ -1208,6 +1208,13 @@
             "maxItems": 32,
             "title": "Imageoptions"
           },
+          "livesRemaining": {
+            "type": "integer",
+            "maximum": 3.0,
+            "minimum": 1.0,
+            "title": "Livesremaining",
+            "default": 3
+          },
           "pack": {
             "type": "string",
             "enum": [
@@ -1458,6 +1465,11 @@
             "maxLength": 100,
             "title": "Pose",
             "default": ""
+          },
+          "endingPreferred": {
+            "type": "boolean",
+            "title": "Endingpreferred",
+            "default": false
           },
           "useWhen": {
             "type": "string",

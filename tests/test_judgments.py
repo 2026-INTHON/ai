@@ -38,3 +38,14 @@ class JudgmentTests(unittest.TestCase):
                 self.assertFalse(grade.native);self.assertEqual(grade.outcome,'correct')
                 self.assertEqual(grade.imageAssetKey,key if key==option['assetKey'] else None)
                 self.assertEqual(llm.call_args.args[1]['imageOptions'][0]['useWhen'],'다음 일정 확인')
+
+    def test_last_life_and_negative_image_guidance_reach_the_prompt_without_changing_the_mark(self):
+        option={'assetKey':'characters/girlfriend/contempt','emotion':'angry','gesture':'arms_crossed','reaction':'contempt','endingPreferred':True}
+        request=EvaluationRequest(mode='live',pack='ko',characterId='girlfriend',personalityId='calm',situation='약속에 관한 갈등',node=node(),text='내가 알아서 할 테니까 신경 쓰지 마.',imageOptions=[option],livesRemaining=1)
+        result=mock_grade(request).model_copy(update={'evaluationMark':'X','emotion':'angry','imageAssetKey':option['assetKey']})
+        with patch('malo_ai.providers.json_completion',new_callable=AsyncMock,return_value=(result,'test')) as llm:
+            grade,_=asyncio.run(evaluate(request))
+            self.assertEqual(grade.evaluationMark,'X');self.assertEqual(grade.imageAssetKey,option['assetKey'])
+            self.assertEqual(llm.call_args.args[1]['livesRemaining'],1)
+            self.assertTrue(llm.call_args.args[1]['imageOptions'][0]['endingPreferred'])
+            self.assertIn('cold contempt or sadness',llm.call_args.args[2])
