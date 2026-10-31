@@ -88,6 +88,27 @@ def foreground(image):
     return result
 
 
+def retain_figure(image, seed):
+    """Remove disconnected fragments of neighboring figures from the lineup crop."""
+    alpha = np.asarray(image)[:,:,3].copy()
+    solid = alpha>8
+    ys,xs = np.nonzero(solid)
+    index = np.argmin((xs-seed[0])**2+(ys-seed[1])**2)
+    start = (int(xs[index]),int(ys[index]))
+    visited = np.zeros(solid.shape,bool)
+    visited[start[1],start[0]] = True
+    queue = deque([start]); h,w = solid.shape
+    while queue:
+        x,y = queue.popleft()
+        for nx,ny in ((x-1,y),(x+1,y),(x,y-1),(x,y+1)):
+            if 0<=nx<w and 0<=ny<h and solid[ny,nx] and not visited[ny,nx]:
+                visited[ny,nx]=True;queue.append((nx,ny))
+    keep = np.asarray(Image.fromarray(np.uint8(visited)*255).filter(ImageFilter.MaxFilter(3)))>0
+    alpha[~keep]=0
+    image.putalpha(Image.fromarray(alpha))
+    return image
+
+
 def rect_mask(shape, box):
     mask = np.zeros(shape, bool)
     x0,y0,x1,y1 = [int(x) for x in box]
@@ -186,6 +207,7 @@ def build_character(key, source, output):
     p = PROFILES[key]
     x0,y0,x1,y1 = p["crop"]
     image = foreground(source.crop((x0,y0,x1,y1)))
+    image = retain_figure(image,(p["neck"][0]-x0,p["neck"][1]-y0))
     w,h = image.size; scale = p["height"]/h
     alpha_array = np.asarray(image)[:,:,3].copy()
     background_rgb = np.asarray(image)[:,:,:3].astype(int)
@@ -257,11 +279,16 @@ def build_character(key, source, output):
         weights *= (1-strength[:,None]); weights[:,first]+=strength*(1-t); weights[:,fore]+=strength*t
         d,t = segment_distance(points,b,c); strength=np.clip(1-d/33,0,.96)
         weights *= (1-strength[:,None]); weights[:,fore]+=strength*(1-t); weights[:,hand]+=strength*t
-    hair_vertex = hair_mask[py,px]
     # Blend through the neck and long hair; a hard rectangular seam would tear on a head tilt.
     neck_y = point["neck"][1]
     head_strength = np.where(head_region, np.clip((neck_y+12-points[:,1])/30,0,1), 0.)
-    head_strength = np.maximum(head_strength, np.where(hair_vertex, np.clip(1-(points[:,1]-neck_y)/190,.15,1),0))
+    # Skinning must stay continuous: texture color masks would produce jagged moving edges.
+    for box in p["longHair"]:
+        bx0,by0,bx1,by1 = np.array(box)-np.array([x0,y0,x0,y0])
+        width = max(1,(bx1-bx0)/2)
+        taper = 1-np.clip((points[:,1]-neck_y)/max(1,by1-neck_y),0,1)
+        strength = .6*taper*np.exp(-((points[:,0]-(bx0+bx1)/2)/width)**2)
+        head_strength = np.maximum(head_strength,strength)
     weights *= 1-head_strength[:,None]
     weights[:,3] += head_strength
     palette = np.argsort(weights,axis=1)[:,-4:]
