@@ -102,6 +102,7 @@ class EvaluationRequest(Model):
 
 
 class Grade(Model):
+    evaluationMark: Literal['O','△','X','?'] | None = None
     reaction: Emotion | None = None
     goalAchieved: bool | None = None
     reasonSubtitle: str = Field(default='',max_length=1200)
