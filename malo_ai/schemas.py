@@ -95,9 +95,13 @@ class EvaluationRequest(Model):
     text: str = Field(min_length=1, max_length=1200)
     history: list[dict[str, str]] = Field(default_factory=list, max_length=12)
     audioMetrics: AudioMetrics | None = None
+    allowedRoutes: list[str] = Field(default_factory=list, max_length=2)
+    allowedEndings: list[str] = Field(default_factory=list, max_length=3)
 
 
 class Grade(Model):
+    routeId: str | None = None
+    endingId: str | None = None
     outcome: Literal["correct", "misunderstanding", "clarify"]
     confidence: float = Field(ge=0, le=1)
     toneScore: int = Field(ge=0, le=100)

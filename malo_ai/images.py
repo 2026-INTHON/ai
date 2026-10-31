@@ -72,7 +72,7 @@ def estimated_cost(usage: dict) -> float | None:
     return round((details["text_tokens"] * 5 + details["image_tokens"] * 8 + output * 30) / 1_000_000, 6)
 
 
-async def _call_openai(prompt: str, character: str, reference: bytes | None):
+async def _call_openai(prompt: str, character: str, reference: bytes | None, background: str = 'transparent'):
     key = os.getenv("OPENAI_API_KEY")
     if not key:
         raise HTTPException(503, {"code": "IMAGE_NOT_CONFIGURED", "message": "OpenAI 이미지 API 설정이 필요해요.", "retryable": False})
@@ -81,7 +81,7 @@ async def _call_openai(prompt: str, character: str, reference: bytes | None):
     budget = int(float(os.getenv("MALO_IMAGE_DAILY_BUDGET_USD", "2")) * 1_000_000)
     providers.reserve_quota("image_budget_microusd", 100_000, budget)
     body = {"model": MODEL, "prompt": prompt, "quality": QUALITY, "size": SIZE, "n": 1,
-        "output_format": "webp", "output_compression": 85, "background": "transparent",
+        "output_format": "webp", "output_compression": 85, "background": background,
         "safety_identifier": hashlib.sha256(("malo-shared-persona:" + character).encode()).hexdigest()}
     path = "generations"
     if reference:

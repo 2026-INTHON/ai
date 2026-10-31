@@ -6,6 +6,182 @@
     "version": "0.1.0"
   },
   "paths": {
+    "/v1/chapters/outline": {
+      "post": {
+        "tags": [
+          "챕터 생성"
+        ],
+        "summary": "Chapter Outline",
+        "operationId": "chapter_outline_v1_chapters_outline_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChapterRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ]
+      }
+    },
+    "/v1/chapters/lesson": {
+      "post": {
+        "tags": [
+          "챕터 생성"
+        ],
+        "summary": "Chapter Lesson",
+        "operationId": "chapter_lesson_v1_chapters_lesson_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LessonRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ]
+      }
+    },
+    "/v1/chapters/background": {
+      "post": {
+        "tags": [
+          "챕터 생성"
+        ],
+        "summary": "Chapter Background",
+        "operationId": "chapter_background_v1_chapters_background_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BackgroundRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ]
+      }
+    },
+    "/v1/speech/realtime-session": {
+      "post": {
+        "tags": [
+          "STT"
+        ],
+        "summary": "Realtime Session",
+        "operationId": "realtime_session_v1_speech_realtime_session_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Request"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ]
+      }
+    },
     "/health": {
       "get": {
         "tags": [
@@ -483,6 +659,22 @@
         ],
         "title": "AudioMetrics"
       },
+      "BackgroundRequest": {
+        "properties": {
+          "description": {
+            "type": "string",
+            "maxLength": 400,
+            "minLength": 2,
+            "title": "Description"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "description"
+        ],
+        "title": "BackgroundRequest"
+      },
       "Body_transcribe_v1_speech_transcribe_post": {
         "properties": {
           "file": {
@@ -501,6 +693,73 @@
           "file"
         ],
         "title": "Body_transcribe_v1_speech_transcribe_post"
+      },
+      "ChapterRequest": {
+        "properties": {
+          "prompt": {
+            "type": "string",
+            "maxLength": 4000,
+            "minLength": 2,
+            "title": "Prompt"
+          },
+          "characterId": {
+            "type": "string",
+            "enum": [
+              "girlfriend",
+              "friend",
+              "manager",
+              "professor"
+            ],
+            "title": "Characterid"
+          },
+          "personalityId": {
+            "type": "string",
+            "enum": [
+              "strict",
+              "playful",
+              "calm"
+            ],
+            "title": "Personalityid"
+          },
+          "persona": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Persona"
+          },
+          "pack": {
+            "type": "string",
+            "enum": [
+              "ko",
+              "en"
+            ],
+            "title": "Pack",
+            "default": "ko"
+          },
+          "lessonCount": {
+            "type": "integer",
+            "maximum": 4.0,
+            "minimum": 2.0,
+            "title": "Lessoncount",
+            "default": 3
+          },
+          "topics": {
+            "items": {
+              "$ref": "#/components/schemas/Topic"
+            },
+            "type": "array",
+            "maxItems": 4,
+            "title": "Topics"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "prompt",
+          "characterId",
+          "personalityId",
+          "persona"
+        ],
+        "title": "ChapterRequest"
       },
       "Choice": {
         "properties": {
@@ -577,6 +836,28 @@
       },
       "Evaluation": {
         "properties": {
+          "routeId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Routeid"
+          },
+          "endingId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Endingid"
+          },
           "outcome": {
             "type": "string",
             "enum": [
@@ -779,6 +1060,22 @@
                 "type": "null"
               }
             ]
+          },
+          "allowedRoutes": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 2,
+            "title": "Allowedroutes"
+          },
+          "allowedEndings": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 3,
+            "title": "Allowedendings"
           }
         },
         "additionalProperties": false,
@@ -895,6 +1192,88 @@
           "source"
         ],
         "title": "HintResult"
+      },
+      "LessonRequest": {
+        "properties": {
+          "request": {
+            "$ref": "#/components/schemas/ChapterRequest"
+          },
+          "outline": {
+            "$ref": "#/components/schemas/Outline"
+          },
+          "index": {
+            "type": "integer",
+            "maximum": 3.0,
+            "minimum": 0.0,
+            "title": "Index"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "request",
+          "outline",
+          "index"
+        ],
+        "title": "LessonRequest"
+      },
+      "Outline": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Title"
+          },
+          "summary": {
+            "type": "string",
+            "maxLength": 800,
+            "minLength": 1,
+            "title": "Summary"
+          },
+          "continuity": {
+            "type": "string",
+            "maxLength": 1500,
+            "minLength": 1,
+            "title": "Continuity"
+          },
+          "background": {
+            "type": "string",
+            "maxLength": 400,
+            "minLength": 1,
+            "title": "Background"
+          },
+          "existingBackground": {
+            "type": "string",
+            "enum": [
+              "cafe",
+              "office",
+              "street",
+              "new"
+            ],
+            "title": "Existingbackground"
+          },
+          "lessons": {
+            "items": {
+              "$ref": "#/components/schemas/Topic"
+            },
+            "type": "array",
+            "maxItems": 4,
+            "minItems": 2,
+            "title": "Lessons"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "title",
+          "summary",
+          "continuity",
+          "background",
+          "existingBackground",
+          "lessons"
+        ],
+        "title": "Outline"
       },
       "PersonaImageRequest": {
         "properties": {
@@ -1066,6 +1445,31 @@
           "cue"
         ],
         "title": "Perspective"
+      },
+      "Request": {
+        "properties": {
+          "pack": {
+            "type": "string",
+            "enum": [
+              "ko",
+              "en"
+            ],
+            "title": "Pack",
+            "default": "ko"
+          },
+          "userId": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Userid"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "userId"
+        ],
+        "title": "Request"
       },
       "Scenario": {
         "properties": {
@@ -1365,6 +1769,36 @@
           "voice"
         ],
         "title": "SynthesisResult"
+      },
+      "Topic": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Title"
+          },
+          "goal": {
+            "type": "string",
+            "maxLength": 500,
+            "minLength": 1,
+            "title": "Goal"
+          },
+          "situation": {
+            "type": "string",
+            "maxLength": 800,
+            "minLength": 1,
+            "title": "Situation"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "title",
+          "goal",
+          "situation"
+        ],
+        "title": "Topic"
       },
       "TranscriptionResult": {
         "properties": {
