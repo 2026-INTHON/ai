@@ -2,6 +2,7 @@ import asyncio
 import unittest
 from unittest.mock import AsyncMock, patch
 from pydantic import ValidationError
+from fastapi import HTTPException
 from malo_ai.schemas import EvaluationRequest
 from malo_ai.providers import evaluate, mock_grade
 from test_pipeline import node
@@ -9,6 +10,20 @@ from malo_ai.learning_policy import DIALOGUE_STYLE
 
 
 class PersonaTests(unittest.TestCase):
+    def test_missing_style_uses_ordinary_route_without_guessing_story_branches(self):
+        for routes,route,expected in [(['direct','considerate'],None,'direct'),(['direct','considerate'],'considerate','considerate'),(['direct','considerate'],'unknown',None),(['accept','decline'],None,None)]:
+            with self.subTest(routes=routes,route=route):
+                request=EvaluationRequest(mode='live',pack='ko',characterId='girlfriend',personalityId='calm',situation='첫 만남',node=node(),text='스물넷이에요.',allowedRoutes=routes)
+                result=mock_grade(request).model_copy(update={'evaluationMark':'O','goalAchieved':True,'native':False,'routeId':route})
+                with patch('malo_ai.providers.json_completion',new_callable=AsyncMock,return_value=(result,'test')):
+                    if expected is None:
+                        with self.assertRaises(HTTPException) as error:asyncio.run(evaluate(request))
+                        self.assertEqual(error.exception.detail['code'],'STORY_ROUTE_INVALID')
+                    else:
+                        grade,_=asyncio.run(evaluate(request))
+                        self.assertEqual(grade.routeId,expected)
+                        self.assertEqual(grade.evaluationMark,'O')
+
     def test_only_appropriate_late_closing_can_complete_a_conversation(self):
         for allowed,mark,native,expected in [(False,'O',False,False),(True,'O',False,True),(True,'X',False,False),(True,'?',False,False),(True,'△',True,False)]:
             with self.subTest(allowed=allowed,mark=mark,native=native):

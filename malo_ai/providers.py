@@ -196,7 +196,7 @@ async def evaluate(request: EvaluationRequest):
        "Native-language help: on-topic answers get △, goalAchieved false, clarify and a faithful Korean/target-pack alternative; unclear answers can get ?. "
        "Keep legacy outcome consistent: O or goal-achieving △ => correct; X => misunderstanding; otherwise clarify. "
        "reason must name the actual wording and context causing the learning judgment, never diagnose real feelings. reasonSubtitle translates reason into subtitleLanguage. "
-       "Only choose routeId/endingId from allowed lists; null when list empty. direct means explicit proposal, considerate means checking the other's preference first. "
+       "Only choose routeId/endingId from allowed lists; null when list empty. When an answer advances and allowedRoutes is nonempty, routeId MUST select one of them even for a short factual answer. direct is the ordinary concise path; considerate means explicitly checking the other's preference first. These are dialogue styles, not correctness grades. "
        "An O grade may still end deferred due policy or consent; happy only if story agreement is plausible. Never decide lives/rewards. "
        "Very concise: each feedback/reason one sentence, npcReply at most two short sentences. npcReplySubtitle faithfully translates npcReply into subtitleLanguage, preserving politeness and uncertainty. "
        "gesture selects a visible fictional NPC pose: idle, nod, tilt, thinking, open_hand, arms_crossed. "
@@ -210,6 +210,11 @@ async def evaluate(request: EvaluationRequest):
     data['native']=language_help(request.text,request.pack,result.native)
     data['conversationComplete'] = bool(result.conversationComplete and request.closingAllowed and data['outcome']=='correct' and not data['native'])
     if data.get('imageAssetKey') not in {option.assetKey for option in request.imageOptions}:data['imageAssetKey']=None
+    # A missing optional style cannot turn a valid factual answer into a 502.
+    # Only the authored direct/considerate style pair has this ordinary default;
+    # do not guess custom story branches, endings, grades or consent.
+    if data['outcome']=='correct' and not data['native'] and data['routeId'] is None and 'direct' in request.allowedRoutes and set(request.allowedRoutes)<= {'direct','considerate'}:
+        data['routeId']='direct'
     if data['outcome'] == 'correct' and not data['native'] and ((request.allowedRoutes and data['routeId'] not in request.allowedRoutes) or (request.allowedEndings and (data['conversationComplete'] or request.nextCheckpoint is None) and data['endingId'] not in request.allowedEndings)):
         raise HTTPException(502, {'code':'STORY_ROUTE_INVALID','message':'이야기 반응을 확인하지 못했어요. 다시 시도해 주세요.','retryable':True})
     if data['routeId'] not in request.allowedRoutes: data['routeId'] = None
