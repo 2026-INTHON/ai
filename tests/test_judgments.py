@@ -24,3 +24,6 @@ class JudgmentTests(unittest.TestCase):
                 self.assertIn('Precise',payload['personaGuidance'])
                 self.assertIn('Allow minor errors',instruction)
                 self.assertIn('corrupted speech transcript',instruction)
+                self.assertIn('네 교수님. 내일 2시에 갈게요.',instruction)
+                self.assertIn('교수님, 내일 수업은 휴강인가요?',instruction)
+                self.assertIn('교수님, 내일... 아니 그때 제가... 시간...',instruction)
