@@ -111,3 +111,9 @@ python scripts/export_openapi.py
 Google OAuth 설정은 Backend 인수인계 참조. Lablup 실제 endpoint/key 연결, FE의 캐릭터 이미지 표시, TTS 음색/인격별 프롬프트 품질 조정은 팀 작업입니다. 모델이 반환한 가상 평가를 실제 사람의 성격이나 능력 판단으로 쓰지 않습니다.
 
 해커톤 범위에서는 한 VM/한 Uvicorn worker, SQLite 사용량 장부와 파일 캐시를 사용합니다. 여러 worker/서버로 확장할 때 공유 큐·캐시·사용량 제한을 도입하세요. 현재 업로드 원본은 요청이 끝나면 임시 디렉터리에서 지우며, 변환된 TTS 파일만 캐시합니다.
+# Character-specific persona context
+
+The authoritative editable profiles live in backend `src/personas/{girlfriend,professor,friend,manager}.json` (one file per character, three personality variants each). Do not duplicate their biography in this repository.
+Live evaluation accepts optional typed `persona` context; character/personality IDs must match the turn. The same profile feeds chapter generation. Existing clients without context retain legacy guidance. Preferences shape dialogue, never override O/△/X/? assessment or penalize respectful disagreement. Situation/history determine intimacy and Korean speech register.
+Deploy this AI schema before the backend starts sending `persona`. Existing authored catalogue lines are not regenerated automatically.
+

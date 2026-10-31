@@ -114,6 +114,9 @@ Preserve relevant user details (emotions, setting, requested outcome) within saf
 No sexual content, abusive/profane dialogue, harassment, illegal instructions, discrimination or coercion.
 Respect relationship boundaries, consent, uncertainty and rejection; do not teach manipulation.
 Persona defines fictional dialogue style, not absolute cultural rules or mind-reading.
+Use persona.profile and dialogueRules for consistent occupation, interests, preferences and speech. Do not mix personalities.
+Current situation determines relationship and register: a first meeting does not imply an existing romance. Do not mix polite and casual Korean without context.
+Preferences are not learning correctness criteria. Respect different tastes and honest refusals; do not insert hobbies into irrelevant scenes or repeat generic coaching introductions.
 Korean explanations; spoken dialogue and examples use requested pack. Output JSON only, following this schema: """
 
 
