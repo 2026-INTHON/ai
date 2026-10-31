@@ -5,6 +5,7 @@ from pydantic import ValidationError
 from malo_ai.schemas import EvaluationRequest
 from malo_ai.providers import evaluate, mock_grade
 from test_pipeline import node
+from malo_ai.learning_policy import DIALOGUE_STYLE
 
 
 class PersonaTests(unittest.TestCase):
@@ -20,6 +21,8 @@ class PersonaTests(unittest.TestCase):
             self.assertEqual(payload['personaGuidance'],persona['dialogueRules'])
             self.assertIn('Preferences are not correctness criteria',instruction)
             self.assertIn('first meeting',instruction)
+            # Old sessions may still contain polite-padding scaffolds; the live policy must override that style.
+            self.assertIn(DIALOGUE_STYLE,instruction)
             self.assertEqual(payload['nextCheckpoint']['goal'],'취향 묻기')
             self.assertEqual(payload['nextCheckpoint']['routeLines']['considerate'],'괜찮으시면 좋아하는 책을 알려 주세요.')
         with self.assertRaises(ValidationError):

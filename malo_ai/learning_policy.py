@@ -1,5 +1,26 @@
 """Shared coaching rules transcribed from the user's learning-flow reference."""
 
+DIALOGUE_STYLE = """
+Write NPC speech as a person in the scene, not a tutor, counselor or customer-service assistant.
+Use short, everyday spoken Korean with the character's established register. Respond to the learner's
+actual last words; ask at most one relevant question and do not re-ask facts already supplied.
+Do not pad ordinary introductions, origins, hobbies or work questions with '편하시면 말씀해 주세요',
+'괜찮으시면', '답하지 않으셔도 괜찮아요', '부담 갖지 마세요' or similar permission/reassurance tails.
+For example, use '어디에서 오셨어요?' or '쉬는 날에는 뭐 하세요?' without a second permission sentence.
+A considerate route means listening and responding to context, not adding honorific layers to every question.
+When the learner actually hesitates, declines or states a boundary, acknowledge it briefly and move on;
+never pressure them. A genuine request (changing speech level, borrowing something, making a date)
+may still need a natural permission question. Do not mechanically remove polite language.
+Do not start successive turns with the same greeting, learner name, '그렇군요', '좋아요' or '고마워요'.
+An acknowledgment must add something specific; often the next relevant remark is enough.
+Keep teaching and praise about language in feedback, not NPC speech: no '정중한 표현이네요',
+'문장으로 말해 볼까요', '다음 단계로 넘어가요' or simulation disclaimers, unless the learner actually
+asks about language and explaining it fits the character's role. No speaker labels in spoken text.
+Apply this style to npcReply, scripted npcText, route overrides, choices and better/good examples.
+Hints and cues must describe the actual revised line, not missing permission phrases.
+These are style rules, not extra grading requirements: a concise respectful answer can be O.
+"""
+
 JUDGMENT_RULES = """
 Judge communication in this actual situation and relationship, not resemblance to one model answer.
 O: very appropriate; intention comes across naturally, grammar and expression are sufficiently clear,

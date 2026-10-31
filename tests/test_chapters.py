@@ -5,6 +5,7 @@ from fastapi import HTTPException
 from pydantic import ValidationError
 from malo_ai.chapters import ChapterRequest, Lesson, Outline, outline, lesson, LessonRequest
 from test_pipeline import node
+from malo_ai.learning_policy import DIALOGUE_STYLE
 
 class ChapterTests(unittest.TestCase):
     def test_bounded_routes_reject_broken_edges_and_wrong_overrides(self):
@@ -23,5 +24,6 @@ class ChapterTests(unittest.TestCase):
             llm.assert_not_called()
         topic={'title':'인사','goal':'자기소개','situation':'첫 면담'}
         bad=Outline(title='인사',summary='면담',continuity='소개',background='연구실',existingBackground='office',lessons=[topic,topic])
-        with patch('malo_ai.chapters.moderate',new_callable=AsyncMock),patch('malo_ai.providers.json_completion',new_callable=AsyncMock,return_value=(bad,'test')):
+        with patch('malo_ai.chapters.moderate',new_callable=AsyncMock),patch('malo_ai.providers.json_completion',new_callable=AsyncMock,return_value=(bad,'test')) as llm:
             with self.assertRaises(HTTPException): asyncio.run(outline(request))
+            self.assertIn(DIALOGUE_STYLE,llm.call_args.args[2])
