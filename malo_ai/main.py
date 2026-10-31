@@ -15,7 +15,7 @@ from . import audio, providers, images, chapters, realtime, subtitles, reports
 from .schemas import Evaluation, EvaluationRequest, HintRequest, HintResult, ScenarioRequest, ScenarioResult, SynthesisRequest, SynthesisResult, TranscriptionResult, PersonaImageRequest, PersonaImageResult
 
 app = FastAPI(title="Malo AI Pipeline", version="0.1.0", root_path=os.getenv("MALO_AI_ROOT_PATH", ""),
-    description="내부 AI 서비스입니다. FE는 Backend API를 사용하세요. 대화 평가, STT, 여자친구 성격·감정 OpenAI TTS, 나머지 캐릭터 Azure TTS를 제공합니다.")
+    description="내부 AI 서비스입니다. FE는 Backend API를 사용하세요. 대화 평가, STT, 여자친구 성격·감정 Typecast/OpenAI TTS, 나머지 캐릭터 Azure TTS를 제공합니다.")
 service_header = APIKeyHeader(name="X-AI-Service-Token", auto_error=False)
 
 
@@ -73,7 +73,7 @@ async def http_error(_, error: HTTPException):
 def health():
     return {"status": "ok", "service": "malo-ai", "version": "0.1.0", "capabilities": {
         "mock": True, "lablup": bool(os.getenv("LABLUP_API_KEY") and os.getenv("LABLUP_BASE_URL")),
-        "openai": bool(os.getenv("OPENAI_API_KEY")), "azureTts": bool(os.getenv("AZURE_SPEECH_KEY")), "openaiImages": bool(os.getenv("OPENAI_API_KEY")),
+        "openai": bool(os.getenv("OPENAI_API_KEY")), "azureTts": bool(os.getenv("AZURE_SPEECH_KEY")), "typecastTts":bool(os.getenv('TYPECAST_API_KEY')), "openaiImages": bool(os.getenv("OPENAI_API_KEY")),
     }}
 
 

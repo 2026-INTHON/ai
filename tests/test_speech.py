@@ -11,6 +11,20 @@ from malo_ai.schemas import SynthesisRequest
 
 
 class SpeechTests(unittest.IsolatedAsyncioTestCase):
+    async def test_typecast_uses_catalogued_young_female_conversation_voices_and_emotional_presets(self):
+        response=httpx.Response(200,content=b'ID3'+bytes(100),request=httpx.Request('POST','https://api.typecast.ai/v1/text-to-speech'))
+        with tempfile.TemporaryDirectory() as tmp,patch('malo_ai.providers.DATA_DIR',Path(tmp)),patch.dict('os.environ',{'TYPECAST_API_KEY':'test-key','MALO_GIRLFRIEND_TTS_PROVIDER':'typecast'}),patch('httpx.AsyncClient.post',new_callable=AsyncMock,return_value=response) as post:
+            seen=set()
+            for personality in ['playful','calm','strict']:
+                request=SynthesisRequest(text='이번 주말에 하고 싶은 거 있어?',characterId='girlfriend',personalityId=personality)
+                result=await synthesize(request);seen.add(result['voice'])
+                payload=post.call_args.kwargs['json'];self.assertEqual(payload['model'],'ssfm-v31');self.assertEqual(payload['language'],'kor');self.assertEqual(payload['text'],request.text);self.assertEqual(payload['output']['audio_format'],'mp3')
+                self.assertEqual(payload['prompt']['emotion_preset'],'toneup' if personality=='playful' else 'normal')
+                self.assertTrue((await synthesize(request))['cached'])
+            self.assertEqual(len(seen),3);self.assertEqual(post.await_count,3)
+            await synthesize(SynthesisRequest(text='정말 너무해.',characterId='girlfriend',emotion='sad',reaction='sobbing'))
+            self.assertEqual(post.call_args.kwargs['json']['prompt']['emotion_preset'],'sad');self.assertGreater(post.call_args.kwargs['json']['prompt']['emotion_intensity'],1.5)
+
     async def test_girlfriend_personality_emotion_and_reaction_control_voice_and_cache(self):
         response = httpx.Response(200, content=b"ID3" + bytes(100), request=httpx.Request("POST", "https://api.openai.com/v1/audio/speech"))
         with tempfile.TemporaryDirectory() as tmp, patch("malo_ai.providers.DATA_DIR", Path(tmp)), patch.dict("os.environ", {"OPENAI_API_KEY": "test-key", "MALO_OPENAI_TTS_DAILY_CHAR_LIMIT": "1000"}), patch("httpx.AsyncClient.post", new_callable=AsyncMock, return_value=response) as post:
