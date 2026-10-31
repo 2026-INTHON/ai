@@ -873,6 +873,66 @@
         ],
         "title": "ChapterRequest"
       },
+      "CharacterCardProfile": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "occupation": {
+            "type": "string",
+            "title": "Occupation"
+          },
+          "age": {
+            "type": "string",
+            "title": "Age"
+          },
+          "hobbies": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 10,
+            "title": "Hobbies"
+          },
+          "favoriteFoods": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 10,
+            "title": "Favoritefoods"
+          },
+          "dislikes": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 10,
+            "title": "Dislikes"
+          },
+          "currentInterests": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 10,
+            "title": "Currentinterests"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "name",
+          "occupation",
+          "age",
+          "hobbies",
+          "favoriteFoods",
+          "dislikes",
+          "currentInterests"
+        ],
+        "title": "CharacterCardProfile"
+      },
       "CharacterProfile": {
         "properties": {
           "age": {
@@ -1047,6 +1107,21 @@
       },
       "Evaluation": {
         "properties": {
+          "npcSpeechLevel": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "polite",
+                  "casual"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Npcspeechlevel"
+          },
           "conversationComplete": {
             "type": "boolean",
             "title": "Conversationcomplete",
@@ -1429,6 +1504,26 @@
             "type": "boolean",
             "title": "Closingallowed",
             "default": false
+          },
+          "npcSpeechLevel": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "polite",
+                  "casual"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Npcspeechlevel"
+          },
+          "allowSpeechLevelChange": {
+            "type": "boolean",
+            "title": "Allowspeechlevelchange",
+            "default": false
           }
         },
         "additionalProperties": false,
@@ -1774,6 +1869,16 @@
           },
           "profile": {
             "$ref": "#/components/schemas/CharacterProfile"
+          },
+          "cardProfile": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CharacterCardProfile"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "dialogueRules": {
             "items": {

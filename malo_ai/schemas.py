@@ -113,6 +113,16 @@ class CharacterProfile(Model):
     sampleLines: list[str] = Field(max_length=8)
 
 
+class CharacterCardProfile(Model):
+    name: str
+    occupation: str
+    age: str
+    hobbies: list[str] = Field(max_length=10)
+    favoriteFoods: list[str] = Field(max_length=10)
+    dislikes: list[str] = Field(max_length=10)
+    currentInterests: list[str] = Field(max_length=10)
+
+
 class PersonaContext(Model):
     characterId: str = Field(max_length=60)
     personalityId: Literal['calm', 'playful', 'strict']
@@ -121,6 +131,7 @@ class PersonaContext(Model):
     short: str = Field(max_length=400)
     description: str = Field(max_length=800)
     profile: CharacterProfile
+    cardProfile: CharacterCardProfile | None = None
     dialogueRules: list[str] = Field(max_length=16)
 
 
@@ -148,6 +159,8 @@ class EvaluationRequest(Model):
     persona: PersonaContext | None = None
     nextCheckpoint: NextCheckpoint | None = None
     closingAllowed: bool = False
+    npcSpeechLevel: Literal['polite','casual'] | None = None
+    allowSpeechLevelChange: bool = False
 
     @model_validator(mode='after')
     def matching_persona(self):
@@ -157,6 +170,7 @@ class EvaluationRequest(Model):
 
 
 class Grade(Model):
+    npcSpeechLevel: Literal['polite','casual'] | None = None
     conversationComplete: bool = False
     imageAssetKey: str | None = Field(default=None,max_length=200)
     evaluationMark: Literal['O','△','X','?'] | None = None

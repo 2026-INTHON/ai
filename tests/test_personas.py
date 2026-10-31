@@ -49,6 +49,19 @@ class PersonaTests(unittest.TestCase):
             # Old sessions may still contain polite-padding scaffolds; the live policy must override that style.
             self.assertIn(DIALOGUE_STYLE,instruction)
             self.assertEqual(payload['nextCheckpoint']['goal'],'취향 묻기')
-            self.assertEqual(payload['nextCheckpoint']['routeLines']['considerate'],'괜찮으시면 좋아하는 책을 알려 주세요.')
+            self.assertEqual(payload['nextCheckpoint'],{'goal':'취향 묻기'})
+            self.assertNotIn('goodExample',payload)
+            self.assertNotIn('fictionalIntent',payload)
         with self.assertRaises(ValidationError):
             EvaluationRequest(**{**request.model_dump(),'personalityId':'strict'})
+
+    def test_register_persists_without_explicit_permission_and_keeps_recent_context(self):
+        for allowed,returned,expected in [(False,'casual','polite'),(True,'casual','casual'),(True,None,'polite')]:
+            with self.subTest(allowed=allowed,returned=returned):
+                history=[dict(user=f'질문 {i}',npc=f'대답 {i}') for i in range(10)]
+                request=EvaluationRequest(mode='live',pack='ko',characterId='girlfriend',personalityId='calm',situation='점심 식사',node=node(),text='슴슴한 음식을 좋아하세요?',npcSpeechLevel='polite',allowSpeechLevelChange=allowed,history=history)
+                result=mock_grade(request).model_copy(update={'npcSpeechLevel':returned})
+                with patch('malo_ai.providers.json_completion',new_callable=AsyncMock,return_value=(result,'test')) as llm:
+                    grade,_=asyncio.run(evaluate(request))
+                    self.assertEqual(grade.npcSpeechLevel,expected)
+                    self.assertEqual(len(llm.call_args.args[1]['history']),10)
