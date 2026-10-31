@@ -11,6 +11,13 @@ from malo_ai.providers import typecast_voice
 from malo_ai.schemas import SynthesisRequest
 
 class ExportTests(unittest.TestCase):
+    def test_english_captions_wrap_at_word_boundaries(self):
+        font=exports.ImageFont.truetype(str(exports.FONT),25)
+        text='When can you submit the assignment?'
+        lines=exports.wrapped(text,font,220)
+        self.assertEqual(''.join(lines),text)
+        self.assertTrue(all(line.endswith(' ') for line in lines[:-1]))
+
     def test_foreign_assets_and_path_traversal_are_rejected(self):
         for url in ['http://127.0.0.1/admin','https://example.com/image.png','https://bihmoysircqrbhljywlt.supabase.co.evil.test/storage/v1/object/public/x']:
             with self.assertRaises(HTTPException):asyncio.run(exports.image_bytes(url))

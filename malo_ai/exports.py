@@ -87,9 +87,11 @@ def wrapped(text,font,width):
     lines=[]
     for paragraph in text.split('\n'):
         line=''
-        for char in paragraph:
-            if line and font.getlength(line+char)>width:lines.append(line);line=''
-            line+=char
+        for token in re.findall(r"[A-Za-z0-9]+(?:['’.-][A-Za-z0-9]+)*|\s+|.",paragraph):
+            if not token.isspace() and line and font.getlength(line+token)>width:lines.append(line);line=''
+            for char in token:
+                if not char.isspace() and line and font.getlength(line+char)>width:lines.append(line);line=''
+                line+=char
         lines.append(line)
     return lines or ['']
 
@@ -183,7 +185,7 @@ def render_pdf(request,path):
     SimpleDocTemplate(str(path),pagesize=(595,842),rightMargin=42,leftMargin=42,topMargin=42,bottomMargin=42,title=request.title,author='Malo').build(flow,onFirstPage=footer,onLaterPages=footer)
 
 async def render(request:ExportRequest):
-    digest=hashlib.sha256(('replay-v1:'+request.model_dump_json()).encode()).hexdigest()[:40]
+    digest=hashlib.sha256(('replay-v2:'+request.model_dump_json()).encode()).hexdigest()[:40]
     asset=f'e_{digest}.'+('mp4' if request.format=='video' else 'pdf');path=file_path(asset)
     async with _render_lock:
         if not path.is_file():
