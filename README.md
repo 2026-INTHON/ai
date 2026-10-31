@@ -38,11 +38,13 @@ flowchart LR
 
 ## 비용과 동작
 
-현재 여자친구 운영 음성은 **Typecast SSFM 3.1**이다. `MALO_GIRLFRIEND_TTS_PROVIDER=typecast`, `TYPECAST_API_KEY`를 사용한다. 보이스는 공식 v3 카탈로그에서 ssfm-v31·female·young_adult·Conversational을 확인한 아리(playful), 예진(calm), MBTI ET 여(strict)다. 발랄함은 toneup, 실제 happy/sad/angry는 해당 감정 프리셋으로 우선하며 경멸은 tonedown, 울먹임은 sad 강도로 조정한다. 피치를 억지로 올리지 않고 원래 대화용 음색을 쓴다. 모델·음색·성격·감정·템포가 캐시 키에 포함되어 기존 OpenAI/Azure 음성과 섞이지 않는다.
+여자친구·교수 운영 음성은 **Typecast SSFM 3.1**이다. `MALO_GIRLFRIEND_TTS_PROVIDER=typecast`, `MALO_PROFESSOR_TTS_PROVIDER=typecast`, `TYPECAST_API_KEY`를 사용한다. 선택한 조합은 여자친구 **아린(playful) / 나윤(calm) / 예은(strict)**, 교수 **승연(playful=친절) / 재선(calm=기본) / 라연(strict)**이다. 정확한 voice ID는 `.env.example`의 `TYPECAST_VOICE_{CHARACTER}_{PERSONALITY}`에 있다. 과거 캐릭터 공용 `TYPECAST_VOICE_CALM` 등의 설정은 사용하지 않는다.
 
-Typecast 신규 생성은 KST 하루 기본 4,000자이며 캐시 재생은 추가 제공자 호출이 없다. [API Free](https://typecast.ai/pricing/api/)는 확인일 2026-11-01 기준 월 15,000크레딧, 카드 등록 불필요, 비상업적 사용·출처 표시 조건이다. 유료 전환이나 자동 추가 결제는 설정하지 않았다. `TYPECAST_API_KEY`는 BE·AI Actions Secrets와 VM의 권한 제한된 AI 환경 파일에서만 관리하며 공개 소스/Release에 포함하지 않는다. 다른 캐릭터는 Azure를 유지한다. 아래 OpenAI 설정은 명시적으로 provider=openai를 선택할 때만 적용된다.
+밝은 평상시 말투는 toneup, 실제 happy/sad/angry는 해당 감정 프리셋을 우선한다. 경멸은 tonedown, 울먹임은 sad 강도 1.7, 혼란은 낮은 tonedown 강도로 표현한다. 전용 경멸·울음 모델이 아니라 억양 조정이며, 같은 캐릭터·성격의 음색은 유지한다. 캐시 버전 `selected-voice-v2`와 모델·목소리·성격·감정·템포를 해시에 넣어 기존 대사도 새 음성으로 생성한다. 기존 파일을 지우지 않고 새 URL로 분리하므로 이미 열려 있는 재생을 깨뜨리지 않는다.
 
-이 서비스의 일부 AI 음성은 Typecast 가상 성우 서비스로 제작했다. 사용 보이스: 아리, 예진, MBTI ET 여. https://typecast.ai — [출처 표시 안내](https://typecast.ai/guideline/).
+Typecast 신규 생성은 KST 하루 기본 4,000자이며 캐시 재생은 추가 제공자 호출이 없다. [API Free](https://typecast.ai/pricing/api/)는 확인일 2026-11-01 기준 월 15,000크레딧, 카드 등록 불필요, 비상업적 사용·출처 표시 조건이다. 유료 전환이나 자동 추가 결제는 설정하지 않았다. `TYPECAST_API_KEY`는 BE·AI Actions Secrets와 VM의 권한 제한된 AI 환경 파일에서만 관리하며 공개 소스/Release에 포함하지 않는다. 친구·부장은 Azure를 유지한다. 아래 OpenAI 설정은 명시적으로 provider=openai를 선택할 때만 적용된다.
+
+이 서비스의 일부 AI 음성은 Typecast 가상 성우 서비스로 제작했다. 사용 보이스: 아린, 예은, 나윤, 재선, 라연, 승연. https://typecast.ai — [출처 표시 안내](https://typecast.ai/guideline/).
 
 - Mock은 단순 규칙이며 API 비용 0원입니다. Mock 자유 입력 채점은 실제 학습 품질을 대표하지 않습니다.
 - `LABLUP_BASE_URL`, `LABLUP_API_KEY`가 있으면 Lablup OpenAI 호환 Chat Completions를 먼저 호출합니다. 현재 Lablup 키는 미설정이며 실제 호출 테스트는 남아 있습니다.
