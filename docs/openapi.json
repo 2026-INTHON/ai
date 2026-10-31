@@ -323,6 +323,98 @@
           }
         ]
       }
+    },
+    "/v1/images/personas/generate": {
+      "post": {
+        "tags": [
+          "이미지 생성"
+        ],
+        "summary": "Generate Persona",
+        "description": "운영자용. 고정 medium 품질, 기본 이미지에서 표정 편집, 캐시 적중 시 과금 없음. 최대 20회/일.",
+        "operationId": "generate_persona_v1_images_personas_generate_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PersonaImageRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PersonaImageResult"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ]
+      }
+    },
+    "/v1/images/{asset_id}": {
+      "get": {
+        "tags": [
+          "이미지 생성"
+        ],
+        "summary": "Get Image",
+        "operationId": "get_image_v1_images__asset_id__get",
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "asset_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Asset Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -676,6 +768,147 @@
           "source"
         ],
         "title": "HintResult"
+      },
+      "PersonaImageRequest": {
+        "properties": {
+          "characterId": {
+            "type": "string",
+            "enum": [
+              "girlfriend",
+              "friend",
+              "manager",
+              "professor"
+            ],
+            "title": "Characterid"
+          },
+          "emotion": {
+            "type": "string",
+            "enum": [
+              "neutral",
+              "happy",
+              "confused",
+              "sad",
+              "angry"
+            ],
+            "title": "Emotion",
+            "default": "neutral"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "characterId"
+        ],
+        "title": "PersonaImageRequest"
+      },
+      "PersonaImageResult": {
+        "properties": {
+          "assetKey": {
+            "type": "string",
+            "title": "Assetkey"
+          },
+          "assetId": {
+            "type": "string",
+            "title": "Assetid"
+          },
+          "characterId": {
+            "type": "string",
+            "title": "Characterid"
+          },
+          "emotion": {
+            "type": "string",
+            "enum": [
+              "neutral",
+              "happy",
+              "confused",
+              "sad",
+              "angry"
+            ],
+            "title": "Emotion"
+          },
+          "model": {
+            "type": "string",
+            "title": "Model"
+          },
+          "quality": {
+            "type": "string",
+            "title": "Quality"
+          },
+          "size": {
+            "type": "string",
+            "title": "Size"
+          },
+          "mimeType": {
+            "type": "string",
+            "const": "image/webp",
+            "title": "Mimetype",
+            "default": "image/webp"
+          },
+          "provider": {
+            "type": "string",
+            "const": "openai",
+            "title": "Provider",
+            "default": "openai"
+          },
+          "isMock": {
+            "type": "boolean",
+            "const": false,
+            "title": "Ismock",
+            "default": false
+          },
+          "cached": {
+            "type": "boolean",
+            "title": "Cached"
+          },
+          "estimatedCostUsd": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Estimatedcostusd"
+          },
+          "usage": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Usage"
+          },
+          "referenceAssetId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Referenceassetid"
+          },
+          "createdAt": {
+            "type": "string",
+            "title": "Createdat"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "assetKey",
+          "assetId",
+          "characterId",
+          "emotion",
+          "model",
+          "quality",
+          "size",
+          "cached",
+          "estimatedCostUsd",
+          "usage",
+          "referenceAssetId",
+          "createdAt"
+        ],
+        "title": "PersonaImageResult"
       },
       "Scenario": {
         "properties": {

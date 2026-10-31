@@ -11,8 +11,8 @@ from fastapi import Depends, FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.security import APIKeyHeader
 
-from . import audio, providers
-from .schemas import Evaluation, EvaluationRequest, HintRequest, HintResult, ScenarioRequest, ScenarioResult, SynthesisRequest, SynthesisResult, TranscriptionResult
+from . import audio, providers, images
+from .schemas import Evaluation, EvaluationRequest, HintRequest, HintResult, ScenarioRequest, ScenarioResult, SynthesisRequest, SynthesisResult, TranscriptionResult, PersonaImageRequest, PersonaImageResult
 
 app = FastAPI(title="Malo AI Pipeline", version="0.1.0", root_path=os.getenv("MALO_AI_ROOT_PATH", ""),
     description="내부 AI 서비스입니다. FE는 Backend API를 사용하세요. mock 평가, Lablup/OpenAI 평가, STT, Azure TTS를 제공합니다.")
@@ -39,7 +39,7 @@ async def http_error(_, error: HTTPException):
 def health():
     return {"status": "ok", "service": "malo-ai", "version": "0.1.0", "capabilities": {
         "mock": True, "lablup": bool(os.getenv("LABLUP_API_KEY") and os.getenv("LABLUP_BASE_URL")),
-        "openai": bool(os.getenv("OPENAI_API_KEY")), "azureTts": bool(os.getenv("AZURE_SPEECH_KEY")),
+        "openai": bool(os.getenv("OPENAI_API_KEY")), "azureTts": bool(os.getenv("AZURE_SPEECH_KEY")), "openaiImages": bool(os.getenv("OPENAI_API_KEY")),
     }}
 
 
@@ -88,6 +88,20 @@ def get_audio(asset_id: str):
 
 @app.get("/v1/persona-assets", dependencies=[Depends(authorize)], tags=["사전 생성 에셋"])
 def assets():
-    return {"generation": "pre-generated", "runtimeImageApiCalls": False,
-        "items": [{"characterId": character, "emotion": emotion, "assetKey": f"characters/{character}/{emotion}", "imageUrl": None}
-                  for character in ["girlfriend", "friend", "manager", "professor"] for emotion in ["neutral", "happy", "confused", "sad", "angry"]]}
+    return images.catalog()
+
+
+@app.post("/v1/images/personas/generate", response_model=PersonaImageResult, dependencies=[Depends(authorize)], tags=["이미지 생성"])
+async def generate_persona(request: PersonaImageRequest):
+    """운영자용. 고정 medium 품질, 기본 이미지에서 표정 편집, 캐시 적중 시 과금 없음. 최대 20회/일."""
+    result = await images.generate(request)
+    result.pop("requestHash", None)
+    return result
+
+
+@app.get("/v1/images/{asset_id}", dependencies=[Depends(authorize)], tags=["이미지 생성"])
+def get_image(asset_id: str):
+    path = images.image_path(asset_id)
+    if not path.is_file():
+        raise HTTPException(404, {"code": "IMAGE_NOT_FOUND", "message": "이미지를 찾지 못했어요.", "retryable": False})
+    return FileResponse(path, media_type="image/webp", headers={"Cache-Control": "public, max-age=31536000, immutable"})

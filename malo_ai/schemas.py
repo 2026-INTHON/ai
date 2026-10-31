@@ -132,3 +132,26 @@ class HintResult(Model):
     thought: str
     tip: str
     source: Literal["fictional_character_goal"]
+
+
+class PersonaImageRequest(Model):
+    characterId: Literal["girlfriend", "friend", "manager", "professor"]
+    emotion: Emotion = "neutral"
+
+
+class PersonaImageResult(Model):
+    assetKey: str
+    assetId: str
+    characterId: str
+    emotion: Emotion
+    model: str
+    quality: str
+    size: str
+    mimeType: Literal["image/webp"] = "image/webp"
+    provider: Literal["openai"] = "openai"
+    isMock: Literal[False] = False
+    cached: bool
+    estimatedCostUsd: float | None
+    usage: dict
+    referenceAssetId: str | None
+    createdAt: str
