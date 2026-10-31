@@ -147,6 +147,7 @@ class EvaluationRequest(Model):
     subtitleLanguage: Literal['en','ja','zh','vi','es','id','ko']='en'
     persona: PersonaContext | None = None
     nextCheckpoint: NextCheckpoint | None = None
+    closingAllowed: bool = False
 
     @model_validator(mode='after')
     def matching_persona(self):
@@ -156,6 +157,7 @@ class EvaluationRequest(Model):
 
 
 class Grade(Model):
+    conversationComplete: bool = False
     imageAssetKey: str | None = Field(default=None,max_length=200)
     evaluationMark: Literal['O','△','X','?'] | None = None
     reaction: Emotion | None = None

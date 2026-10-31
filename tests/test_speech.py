@@ -25,7 +25,10 @@ class SpeechTests(unittest.IsolatedAsyncioTestCase):
                         request=SynthesisRequest(text='그렇게 말씀하셨군요.',characterId=character,personalityId=personality,emotion=emotion,reaction=reaction)
                         result=await synthesize(request)
                         self.assertEqual(result['voice'],voice);self.assertFalse(result['cached']);self.assertNotIn(result['assetId'],ids);ids.add(result['assetId'])
+                        if character=='girlfriend' and reaction=='contempt':preset='normal'
                         payload=post.call_args.kwargs['json'];self.assertEqual(payload['voice_id'],voice);self.assertEqual(payload['prompt']['emotion_preset'],preset)
+                        if character=='girlfriend' and emotion=='angry' and reaction is None:
+                            self.assertLess(payload['prompt']['emotion_intensity'],.6)
                         self.assertTrue((await synthesize(request))['cached'])
             self.assertEqual(post.await_count,36)
 

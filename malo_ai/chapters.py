@@ -142,6 +142,7 @@ async def lesson(request: LessonRequest):
         "Each beat: 3 plausible choices, goodExample, fictional hiddenThought, concrete tip, action, 2-4 observable cues, 3 non-spoiling clue entries and 2 concrete relationship-perspective views. "
         "Two routes direct/considerate are selected after beat THREE. Each overrides ONLY npcText/goodExample/hiddenThought of beats FOUR,FIVE,SIX; both reconverge at beat SEVEN. "
         "All other cue, goal and hint fields must stay compatible with either route. Endings happy/deferred/breakdown (one happy and two bad) are plausible localized outcomes. "
+        "Keep farewells to the last one or two beats. Mention a next-meeting plan only once; a short acknowledgment or goodbye then completes the scene. Do not require a second gratitude sentence or repeat the same closing proposal. "
         "An appropriate expression may still receive a refusal: language success and story outcome are independent. Never promise romantic acceptance. "
         "The topic must match outline.lessons[index]. Retain chapter continuity; a nonfinal ending cannot contradict the next lesson's shared starting facts. "
         "Keep every node concise: npcText <=50 Korean characters, goal <=40, goodExample <=80, hiddenThought <=50, tip <=55, action <=40. Exactly two short cues, three short clues and two views per node. Each view meaning <=60 characters. Retain user details in the outline and continuity instead of repeating the full background in each field. Do not end in the middle of a sentence.")
