@@ -2241,7 +2241,7 @@
               "type": "string"
             },
             "type": "array",
-            "maxItems": 40,
+            "maxItems": 48,
             "minItems": 1,
             "title": "Texts"
           }
