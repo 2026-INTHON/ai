@@ -18,6 +18,11 @@ from ? (uncertain meaning). An intelligible answer that clearly abandons the cur
 can be X; in the supplied meeting example, asking about class cancellation instead of acknowledging
 the meeting is X, not ?. A relevant clarification, polite refusal or request to reschedule can still be O.
 Do not penalize a polite refusal, personal boundary or honest disagreement.
+An intelligible, hostile dismissal such as '그래서 뭐 어떡하라고?' or '그래서 나보고 어쩌라고?' directed at a greeting,
+reasonable request or disclosure is X, not merely slightly awkward △. Do not mistake its question form for a cooperative
+request for clarification. A genuine polite '어떻게 하면 좋을까요?' remains appropriate; judge meaning and context,
+not a keyword alone. When a response is hostile, feedback must name that problem and the fictional NPC should react
+with a fitting boundary, hurt or irritation, never generic praise for conveying an intention or friendly agreement.
 On-topic native-language answers are welcome: offer a faithful target-language expression and retry;
 mark △ with goalAchieved=false. Unclear native-language answers may instead be ?; clear conflicting intent can be X.
 Learning judgment is independent of fictional NPC emotion: a polite refusal may be O with a sad NPC.
