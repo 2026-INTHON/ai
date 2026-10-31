@@ -114,7 +114,7 @@ async def json_completion(schema: type[BaseModel], payload: dict, instruction: s
         if not key:
             raise HTTPException(503, {"code": "LLM_NOT_CONFIGURED", "message": "LLM API 설정이 필요해요.", "retryable": True})
         try:
-            for attempt in range(2):
+            for attempt in range(1 if batch else 2):
                 response = await client.post("https://api.openai.com/v1/responses", headers={"Authorization": "Bearer " + key, "OpenAI-Project": os.getenv("OPENAI_PROJECT", "")}, json={
                     "model": os.getenv("OPENAI_FALLBACK_MODEL", "gpt-6-luna"),
                     "input": [{"role": "system", "content": system}, {"role": "user", "content": json.dumps(payload, ensure_ascii=False)}],
@@ -125,7 +125,7 @@ async def json_completion(schema: type[BaseModel], payload: dict, instruction: s
                 try:
                     return structured_response(schema,response.json()), "openai"
                 except ValueError:
-                    if attempt:raise
+                    if batch or attempt:raise
                     # One real retry for invalid/incomplete output; never salvage a draft as a grade.
                     reserve_quota("llm_requests",1,int(os.getenv("MALO_LLM_DAILY_LIMIT","1000")))
         except (httpx.HTTPError, ValueError, KeyError) as exc:
