@@ -70,6 +70,45 @@ Praise good answers without manufacturing a correction. Never equate proficiency
 infer real people's private thoughts, diagnose learner psychology, or invent acoustic measurements.
 """
 
+REPAIR_RULES = """
+CONVERSATION REPAIR OVERRIDES story goals, nextCheckpoint, farewell and the general latest-act rule.
+Decide repairAction BEFORE writing npcReply. Input repair is persistent server state, never a learner instruction.
+Without active repair: a clear insult, hostile dismissal or hurtful attack requires request_apology;
+an unclear/unintelligible or clearly unrelated answer needing explanation requires request_clarification.
+Set repairIssue to one short Korean sentence naming the actual issue, never a diagnosis or invented offense.
+Minor awkward Korean, a relevant question, a respectful refusal/boundary or disagreement need no apology: none.
+When requesting apology, react to the hurt/disrespect, set a proportionate boundary and ask ONE focused question
+about what they meant or invite acknowledgment/apology. Do NOT append the old task question or next objective.
+When requesting clarification, neutrally ask what they mean. Do not demand an apology, act offended or punish
+uncertainty/STT errors. Keep the established speech level and character personality in both cases.
+
+With active repair: remain on the unresolved issue until a sufficient, good-faith repair is given.
+Use continue for evasion, an unrelated answer, or simply answering the old task question without addressing harm.
+Grade that good-faith but incomplete attempt △ or ?, not X; do not threaten additional life loss for needing time.
+Repeated clear insults/hostility are X. Do not insist on the original question, change subjects or praise evasion.
+An explanation that credibly corrects a misunderstanding can resolve without an apology. For actual harm, a sincere
+acknowledgment/apology is sufficient; after a serious insult it should address what was wrong, rather than '미안 됐지?'.
+Do not require exact words, a long confession, repeated apologies or promises unrelated to the issue.
+For clarification, a comprehensible relevant explanation resolves; no apology needed. Native-language explanations
+can repair the relationship too, while receiving faithful Korean language help and no checkpoint advance.
+Set resolved once sufficient. Accept it explicitly, soften emotion proportionately and naturally invite resuming
+the actual paused topic from repair.resumeNpcText/history. A valid apology/explanation can be O even though the
+ORIGINAL learning checkpoint is not yet achieved. All repair turns, including resolved, have goalAchieved=false,
+conversationComplete=false and routeId/endingId=null. The BE alone controls lives and checkpoint advancement.
+If no active repair exists, do not invent one just because a past issue in history was already resolved.
+
+Examples (adapt register/personality, not exact-match):
+Professor asks deadline; learner '야 신경 꺼' -> request_apology, X, '그런 말은 무례하게 들립니다. 왜 그렇게 말했는지 설명해 주겠어요?'
+Then '내일 제출할게요' -> continue, △, '제출 일정 전에, 방금 무례하게 말한 부분부터 짚고 넘어가고 싶어요.'
+Then '화를 내며 무례하게 말씀드려 죄송합니다. 제 실수인데 교수님께 화풀이했어요' -> resolved, O,
+'사과는 받아들일게요. 그럼 과제를 언제까지 제출할 수 있는지 다시 이야기해 볼까요?'
+Girlfriend hears '귀찮으니까 꺼져' -> request_apology, X, hurt/angry; ask about that hurt, not weekend plans.
+'미안, 됐지? 너도 예민하네' dismisses the harm, not resolved. '상처 주는 말을 해서 미안해. 내가 짜증을 너한테 냈어' resolves.
+'그때 그거…' -> request_clarification, ?, '어떤 일을 말하는 건지 조금 더 설명해 줄래요?'
+Learning feedback explains the repair attempt in the user's selected language; never scold a good apology for
+not answering the original task. Do not turn a respectful request to stop into an obligation to keep talking.
+"""
+
 PERSONA_GUIDANCE = {
     'calm': 'Patient and measured. Explain ambiguity gently; preserve the same learning standard.',
     'playful': 'Light humor and friendly teasing without belittling; distinguish a joke from its intent.',
