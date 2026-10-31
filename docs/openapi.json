@@ -226,6 +226,50 @@
         ]
       }
     },
+    "/v1/reports/generate": {
+      "post": {
+        "tags": [
+          "학습 보고서"
+        ],
+        "summary": "Learning Report",
+        "operationId": "learning_report_v1_reports_generate_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReportRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ]
+      }
+    },
     "/health": {
       "get": {
         "tags": [
@@ -904,6 +948,23 @@
       },
       "Evaluation": {
         "properties": {
+          "evaluationMark": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "O",
+                  "△",
+                  "X",
+                  "?"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Evaluationmark"
+          },
           "reaction": {
             "anyOf": [
               {
@@ -1583,6 +1644,52 @@
           "cue"
         ],
         "title": "Perspective"
+      },
+      "ReportRequest": {
+        "properties": {
+          "language": {
+            "type": "string",
+            "enum": [
+              "en",
+              "ja",
+              "zh",
+              "vi",
+              "es",
+              "id",
+              "ko"
+            ],
+            "title": "Language",
+            "default": "en"
+          },
+          "context": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Context"
+          },
+          "nodes": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "maxItems": 8,
+            "minItems": 1,
+            "title": "Nodes"
+          },
+          "recordedResult": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Recordedresult"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "context",
+          "nodes",
+          "recordedResult"
+        ],
+        "title": "ReportRequest"
       },
       "Scenario": {
         "properties": {
