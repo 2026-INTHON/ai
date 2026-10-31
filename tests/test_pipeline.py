@@ -87,8 +87,8 @@ class PipelineTests(unittest.TestCase):
             llm.assert_not_called()
 
     def test_live_evaluation_preserves_stage_directions_and_guards_native_answer(self):
-        request = EvaluationRequest(mode="live", pack="ko", characterId="professor", personalityId="calm", situation="과제 기한", node=node(), text="Could I submit it tomorrow?")
-        malicious_grade = mock_grade(request).model_copy(update={"native": False, "outcome": "misunderstanding", "confidence": 0.99})
+        request = EvaluationRequest(mode="live", pack="ko", characterId="professor", personalityId="calm", situation="과제 기한", node=node(), text="Could I submit it tomorrow?", allowedRoutes=['direct'], allowedEndings=['happy'])
+        malicious_grade = mock_grade(request).model_copy(update={"native": False, "outcome": "correct", "confidence": 0.99})
         with patch("malo_ai.providers.json_completion", new_callable=AsyncMock, return_value=(malicious_grade, "lablup")) as llm:
             grade, provider = asyncio.run(evaluate(request))
             self.assertEqual(provider, "lablup")
