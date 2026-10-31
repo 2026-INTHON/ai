@@ -1047,6 +1047,11 @@
       },
       "Evaluation": {
         "properties": {
+          "conversationComplete": {
+            "type": "boolean",
+            "title": "Conversationcomplete",
+            "default": false
+          },
           "imageAssetKey": {
             "anyOf": [
               {
@@ -1419,6 +1424,11 @@
                 "type": "null"
               }
             ]
+          },
+          "closingAllowed": {
+            "type": "boolean",
+            "title": "Closingallowed",
+            "default": false
           }
         },
         "additionalProperties": false,
