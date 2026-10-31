@@ -873,6 +873,105 @@
         ],
         "title": "ChapterRequest"
       },
+      "CharacterProfile": {
+        "properties": {
+          "age": {
+            "type": "string",
+            "maxLength": 80,
+            "title": "Age"
+          },
+          "role": {
+            "type": "string",
+            "maxLength": 200,
+            "title": "Role"
+          },
+          "occupation": {
+            "type": "string",
+            "maxLength": 200,
+            "title": "Occupation"
+          },
+          "introduction": {
+            "type": "string",
+            "maxLength": 800,
+            "title": "Introduction"
+          },
+          "relationship": {
+            "type": "string",
+            "maxLength": 500,
+            "title": "Relationship"
+          },
+          "values": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 10,
+            "title": "Values"
+          },
+          "traits": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 10,
+            "title": "Traits"
+          },
+          "likes": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 10,
+            "title": "Likes"
+          },
+          "dislikes": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 10,
+            "title": "Dislikes"
+          },
+          "hobbies": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 10,
+            "title": "Hobbies"
+          },
+          "speakingStyle": {
+            "type": "string",
+            "maxLength": 800,
+            "title": "Speakingstyle"
+          },
+          "sampleLines": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 8,
+            "title": "Samplelines"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "age",
+          "role",
+          "occupation",
+          "introduction",
+          "relationship",
+          "values",
+          "traits",
+          "likes",
+          "dislikes",
+          "hobbies",
+          "speakingStyle",
+          "sampleLines"
+        ],
+        "title": "CharacterProfile"
+      },
       "Choice": {
         "properties": {
           "id": {
@@ -1300,6 +1399,16 @@
             ],
             "title": "Subtitlelanguage",
             "default": "en"
+          },
+          "persona": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PersonaContext"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "additionalProperties": false,
@@ -1578,6 +1687,68 @@
           "lessons"
         ],
         "title": "Outline"
+      },
+      "PersonaContext": {
+        "properties": {
+          "characterId": {
+            "type": "string",
+            "maxLength": 60,
+            "title": "Characterid"
+          },
+          "personalityId": {
+            "type": "string",
+            "enum": [
+              "calm",
+              "playful",
+              "strict"
+            ],
+            "title": "Personalityid"
+          },
+          "revision": {
+            "type": "string",
+            "maxLength": 80,
+            "title": "Revision"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 80,
+            "title": "Name"
+          },
+          "short": {
+            "type": "string",
+            "maxLength": 400,
+            "title": "Short"
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 800,
+            "title": "Description"
+          },
+          "profile": {
+            "$ref": "#/components/schemas/CharacterProfile"
+          },
+          "dialogueRules": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 16,
+            "title": "Dialoguerules"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "characterId",
+          "personalityId",
+          "revision",
+          "name",
+          "short",
+          "description",
+          "profile",
+          "dialogueRules"
+        ],
+        "title": "PersonaContext"
       },
       "PersonaImageRequest": {
         "properties": {
