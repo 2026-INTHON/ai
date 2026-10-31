@@ -11,7 +11,7 @@ from fastapi import Depends, FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.security import APIKeyHeader
 
-from . import audio, providers, images, chapters, realtime
+from . import audio, providers, images, chapters, realtime, subtitles
 from .schemas import Evaluation, EvaluationRequest, HintRequest, HintResult, ScenarioRequest, ScenarioResult, SynthesisRequest, SynthesisResult, TranscriptionResult, PersonaImageRequest, PersonaImageResult
 
 app = FastAPI(title="Malo AI Pipeline", version="0.1.0", root_path=os.getenv("MALO_AI_ROOT_PATH", ""),
@@ -51,6 +51,11 @@ async def chapter_background(request: BackgroundRequest):
 @app.post('/v1/speech/realtime-session', dependencies=[Depends(authorize)], tags=['STT'])
 async def realtime_session(request: realtime.Request):
     return await realtime.create(request)
+
+
+@app.post('/v1/subtitles',dependencies=[Depends(authorize)],tags=['자막'])
+async def translate_subtitles(request:subtitles.Request):
+    return await subtitles.translate(request)
 
 
 @app.exception_handler(HTTPException)
