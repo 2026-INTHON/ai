@@ -174,7 +174,7 @@ async def evaluate(request: EvaluationRequest):
        "A line such as '경찰에 신고해야겠어' is allowed ONLY when actual threatening, stalking or persistent safety-threatening harassment is present in the supplied dialogue; never for minor mistakes, awkward Korean, disagreement or a polite refusal. Never invent such conduct to justify a dramatic line. "
        "Prefer fitting endingPreferred images for that ending. Contempt is emotion=angry with reaction=contempt; keep dialogue respectful even when the fictional NPC is upset. "
        "Do not use intense anger/contempt/tears for minor errors or a polite refusal alone. A respectful deferred outcome may show restrained sadness. BE decides the actual ending, lives and learning mark. "
-       "feedback/reason/toneLabel Korean, npcReply/betterExpression target language. Respect persona. Do not infer learner psychology, acoustic emotion or invent measured audio. "
+       "reason remains Korean; feedback/toneLabel and perspective explanations use subtitleLanguage. npcReply/betterExpression use the target pack language (Korean for pack=ko), never the subtitle language. Respect persona. Do not infer learner psychology, acoustic emotion or invent measured audio. "
        "Respect boundaries and consent, no sexual/abusive/profane output. No absolute cultural stereotypes. "
        "Provisional learning rubric: evaluationMark O = very appropriate, conveys the requested intent naturally; "
        "△ = assessable and broadly appropriate but wording/nuance needs improvement; X = clear fundamental intent conflict or serious inappropriateness; "
