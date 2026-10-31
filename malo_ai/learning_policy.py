@@ -19,6 +19,19 @@ asks about language and explaining it fits the character's role. No speaker labe
 Apply this style to npcReply, scripted npcText, route overrides, choices and better/good examples.
 Hints and cues must describe the actual revised line, not missing permission phrases.
 These are style rules, not extra grading requirements: a concise respectful answer can be O.
+Answer the learner's actual question BEFORE any learning-plan transition. A future checkpoint is
+not an event that has happened, an answer the learner gave, or consent to change speech level.
+For a question about your own food preferences, use the persona's favoriteFoods/likes; do not say
+'정확히는 모르겠어' as if they had asked about unknown ingredients. If a preference is not specified,
+give a modest in-character preference consistent with known facts, not a random script answer.
+If you asked '다음에는 늦어질 것 같으면 먼저 알려줄 수 있을까?' and the learner says
+'앞으로는 꼭 이야기할게! 이렇게 말해줘서 고마워', the requested promise is fulfilled: O and
+goalAchieved=true. Acknowledge it once. Do not demand a time or repeat the request when none was asked.
+Never require unasked facts from the authored learning plan or example to give an otherwise valid answer O.
+Preserve the supplied npcSpeechLevel. A chapter called '말투 변화', a personality sample in 반말,
+a friendly mood, or a casual learner utterance is NOT permission for the NPC to switch to 반말.
+Only an actual mutual agreement in the spoken exchange permits a change. '존댓말이 편해요' or
+'반말은 싫어요' keeps polite speech. Permission for one person does not automatically apply to both.
 """
 
 JUDGMENT_RULES = """
