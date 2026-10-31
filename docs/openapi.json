@@ -1,0 +1,1027 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Malo AI Pipeline",
+    "description": "내부 AI 서비스입니다. FE는 Backend API를 사용하세요. mock 평가, Lablup/OpenAI 평가, STT, Azure TTS를 제공합니다.",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/health": {
+      "get": {
+        "tags": [
+          "상태"
+        ],
+        "summary": "Health",
+        "operationId": "health_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/turns/evaluate": {
+      "post": {
+        "tags": [
+          "대화 평가"
+        ],
+        "summary": "Evaluate",
+        "operationId": "evaluate_v1_turns_evaluate_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EvaluationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Evaluation"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ]
+      }
+    },
+    "/v1/scenarios/generate": {
+      "post": {
+        "tags": [
+          "장면 생성"
+        ],
+        "summary": "Scenario",
+        "operationId": "scenario_v1_scenarios_generate_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ScenarioRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScenarioResult"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ]
+      }
+    },
+    "/v1/hints": {
+      "post": {
+        "tags": [
+          "속마음 힌트"
+        ],
+        "summary": "Hint",
+        "operationId": "hint_v1_hints_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HintRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HintResult"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ]
+      }
+    },
+    "/v1/speech/transcribe": {
+      "post": {
+        "tags": [
+          "STT"
+        ],
+        "summary": "Transcribe",
+        "operationId": "transcribe_v1_speech_transcribe_post",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_transcribe_v1_speech_transcribe_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TranscriptionResult"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ]
+      }
+    },
+    "/v1/speech/synthesize": {
+      "post": {
+        "tags": [
+          "TTS"
+        ],
+        "summary": "Synthesize",
+        "operationId": "synthesize_v1_speech_synthesize_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SynthesisRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SynthesisResult"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ]
+      }
+    },
+    "/v1/audio/{asset_id}": {
+      "get": {
+        "tags": [
+          "TTS"
+        ],
+        "summary": "Get Audio",
+        "operationId": "get_audio_v1_audio__asset_id__get",
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "asset_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Asset Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/persona-assets": {
+      "get": {
+        "tags": [
+          "사전 생성 에셋"
+        ],
+        "summary": "Assets",
+        "operationId": "assets_v1_persona_assets_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AudioMetrics": {
+        "properties": {
+          "durationMs": {
+            "type": "integer",
+            "maximum": 61000.0,
+            "minimum": 0.0,
+            "title": "Durationms"
+          },
+          "pauseCount": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Pausecount"
+          },
+          "silenceRatio": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Silenceratio"
+          },
+          "fillerCount": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Fillercount"
+          },
+          "speed": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Speed"
+          },
+          "speedUnit": {
+            "type": "string",
+            "enum": [
+              "characters_per_minute",
+              "words_per_minute"
+            ],
+            "title": "Speedunit"
+          },
+          "measurement": {
+            "type": "string",
+            "enum": [
+              "audio_rms_and_transcript",
+              "duration_and_transcript"
+            ],
+            "title": "Measurement"
+          },
+          "estimated": {
+            "type": "boolean",
+            "title": "Estimated",
+            "default": true
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "durationMs",
+          "pauseCount",
+          "silenceRatio",
+          "fillerCount",
+          "speed",
+          "speedUnit",
+          "measurement"
+        ],
+        "title": "AudioMetrics"
+      },
+      "Body_transcribe_v1_speech_transcribe_post": {
+        "properties": {
+          "file": {
+            "type": "string",
+            "contentMediaType": "application/octet-stream",
+            "title": "File"
+          },
+          "pack": {
+            "type": "string",
+            "title": "Pack",
+            "default": "ko"
+          }
+        },
+        "type": "object",
+        "required": [
+          "file"
+        ],
+        "title": "Body_transcribe_v1_speech_transcribe_post"
+      },
+      "Choice": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "Id"
+          },
+          "text": {
+            "type": "string",
+            "maxLength": 600,
+            "minLength": 1,
+            "title": "Text"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "text"
+        ],
+        "title": "Choice"
+      },
+      "Evaluation": {
+        "properties": {
+          "outcome": {
+            "type": "string",
+            "enum": [
+              "correct",
+              "misunderstanding",
+              "clarify"
+            ],
+            "title": "Outcome"
+          },
+          "confidence": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Confidence"
+          },
+          "toneScore": {
+            "type": "integer",
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Tonescore"
+          },
+          "toneLabel": {
+            "type": "string",
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "Tonelabel"
+          },
+          "feedback": {
+            "type": "string",
+            "maxLength": 400,
+            "minLength": 1,
+            "title": "Feedback"
+          },
+          "betterExpression": {
+            "type": "string",
+            "maxLength": 600,
+            "minLength": 1,
+            "title": "Betterexpression"
+          },
+          "reason": {
+            "type": "string",
+            "maxLength": 600,
+            "minLength": 1,
+            "title": "Reason"
+          },
+          "npcReply": {
+            "type": "string",
+            "maxLength": 800,
+            "minLength": 1,
+            "title": "Npcreply"
+          },
+          "emotion": {
+            "type": "string",
+            "enum": [
+              "neutral",
+              "happy",
+              "confused",
+              "sad",
+              "angry"
+            ],
+            "title": "Emotion"
+          },
+          "provider": {
+            "type": "string",
+            "title": "Provider"
+          },
+          "isMock": {
+            "type": "boolean",
+            "title": "Ismock"
+          },
+          "toneSource": {
+            "type": "string",
+            "const": "text_politeness",
+            "title": "Tonesource",
+            "default": "text_politeness"
+          },
+          "audioMetrics": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AudioMetrics"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "outcome",
+          "confidence",
+          "toneScore",
+          "toneLabel",
+          "feedback",
+          "betterExpression",
+          "reason",
+          "npcReply",
+          "emotion",
+          "provider",
+          "isMock"
+        ],
+        "title": "Evaluation"
+      },
+      "EvaluationRequest": {
+        "properties": {
+          "mode": {
+            "type": "string",
+            "enum": [
+              "mock",
+              "live"
+            ],
+            "title": "Mode",
+            "default": "mock"
+          },
+          "pack": {
+            "type": "string",
+            "enum": [
+              "ko",
+              "en"
+            ],
+            "title": "Pack"
+          },
+          "characterId": {
+            "type": "string",
+            "maxLength": 60,
+            "minLength": 1,
+            "title": "Characterid"
+          },
+          "personalityId": {
+            "type": "string",
+            "maxLength": 60,
+            "minLength": 1,
+            "title": "Personalityid"
+          },
+          "situation": {
+            "type": "string",
+            "maxLength": 800,
+            "minLength": 1,
+            "title": "Situation"
+          },
+          "node": {
+            "$ref": "#/components/schemas/SceneNode"
+          },
+          "text": {
+            "type": "string",
+            "maxLength": 1200,
+            "minLength": 1,
+            "title": "Text"
+          },
+          "history": {
+            "items": {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            "type": "array",
+            "maxItems": 12,
+            "title": "History"
+          },
+          "audioMetrics": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AudioMetrics"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "pack",
+          "characterId",
+          "personalityId",
+          "situation",
+          "node",
+          "text"
+        ],
+        "title": "EvaluationRequest"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "HintRequest": {
+        "properties": {
+          "node": {
+            "$ref": "#/components/schemas/SceneNode"
+          },
+          "characterId": {
+            "type": "string",
+            "maxLength": 60,
+            "minLength": 1,
+            "title": "Characterid"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "node",
+          "characterId"
+        ],
+        "title": "HintRequest"
+      },
+      "HintResult": {
+        "properties": {
+          "thought": {
+            "type": "string",
+            "title": "Thought"
+          },
+          "tip": {
+            "type": "string",
+            "title": "Tip"
+          },
+          "source": {
+            "type": "string",
+            "const": "fictional_character_goal",
+            "title": "Source"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "thought",
+          "tip",
+          "source"
+        ],
+        "title": "HintResult"
+      },
+      "Scenario": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Title"
+          },
+          "situation": {
+            "type": "string",
+            "maxLength": 800,
+            "minLength": 1,
+            "title": "Situation"
+          },
+          "goal": {
+            "type": "string",
+            "maxLength": 500,
+            "minLength": 1,
+            "title": "Goal"
+          },
+          "pack": {
+            "type": "string",
+            "enum": [
+              "ko",
+              "en"
+            ],
+            "title": "Pack"
+          },
+          "characterId": {
+            "type": "string",
+            "maxLength": 60,
+            "minLength": 1,
+            "title": "Characterid"
+          },
+          "personalityId": {
+            "type": "string",
+            "maxLength": 60,
+            "minLength": 1,
+            "title": "Personalityid"
+          },
+          "nodes": {
+            "items": {
+              "$ref": "#/components/schemas/SceneNode"
+            },
+            "type": "array",
+            "maxItems": 5,
+            "minItems": 2,
+            "title": "Nodes"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "title",
+          "situation",
+          "goal",
+          "pack",
+          "characterId",
+          "personalityId",
+          "nodes"
+        ],
+        "title": "Scenario"
+      },
+      "ScenarioRequest": {
+        "properties": {
+          "mode": {
+            "type": "string",
+            "enum": [
+              "mock",
+              "live"
+            ],
+            "title": "Mode",
+            "default": "mock"
+          },
+          "situation": {
+            "type": "string",
+            "maxLength": 800,
+            "minLength": 1,
+            "title": "Situation"
+          },
+          "seed": {
+            "$ref": "#/components/schemas/Scenario"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "situation",
+          "seed"
+        ],
+        "title": "ScenarioRequest"
+      },
+      "ScenarioResult": {
+        "properties": {
+          "scenario": {
+            "$ref": "#/components/schemas/Scenario"
+          },
+          "provider": {
+            "type": "string",
+            "title": "Provider"
+          },
+          "isMock": {
+            "type": "boolean",
+            "title": "Ismock"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "scenario",
+          "provider",
+          "isMock"
+        ],
+        "title": "ScenarioResult"
+      },
+      "SceneNode": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "Id"
+          },
+          "npcText": {
+            "type": "string",
+            "maxLength": 800,
+            "minLength": 1,
+            "title": "Npctext"
+          },
+          "goal": {
+            "type": "string",
+            "maxLength": 500,
+            "minLength": 1,
+            "title": "Goal"
+          },
+          "goodExample": {
+            "type": "string",
+            "maxLength": 600,
+            "minLength": 1,
+            "title": "Goodexample"
+          },
+          "hiddenThought": {
+            "type": "string",
+            "maxLength": 400,
+            "minLength": 1,
+            "title": "Hiddenthought"
+          },
+          "tip": {
+            "type": "string",
+            "maxLength": 400,
+            "minLength": 1,
+            "title": "Tip"
+          },
+          "choices": {
+            "items": {
+              "$ref": "#/components/schemas/Choice"
+            },
+            "type": "array",
+            "maxItems": 4,
+            "minItems": 2,
+            "title": "Choices"
+          },
+          "nextNodeId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nextnodeid"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "npcText",
+          "goal",
+          "goodExample",
+          "hiddenThought",
+          "tip",
+          "choices",
+          "nextNodeId"
+        ],
+        "title": "SceneNode"
+      },
+      "SynthesisRequest": {
+        "properties": {
+          "text": {
+            "type": "string",
+            "maxLength": 1400,
+            "minLength": 1,
+            "title": "Text"
+          },
+          "pack": {
+            "type": "string",
+            "enum": [
+              "ko",
+              "en"
+            ],
+            "title": "Pack",
+            "default": "ko"
+          },
+          "characterId": {
+            "type": "string",
+            "maxLength": 60,
+            "title": "Characterid",
+            "default": "professor"
+          },
+          "emotion": {
+            "type": "string",
+            "enum": [
+              "neutral",
+              "happy",
+              "confused",
+              "sad",
+              "angry"
+            ],
+            "title": "Emotion",
+            "default": "neutral"
+          },
+          "speed": {
+            "type": "number",
+            "maximum": 1.5,
+            "minimum": 0.5,
+            "title": "Speed",
+            "default": 1
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "text"
+        ],
+        "title": "SynthesisRequest"
+      },
+      "SynthesisResult": {
+        "properties": {
+          "assetId": {
+            "type": "string",
+            "title": "Assetid"
+          },
+          "mimeType": {
+            "type": "string",
+            "const": "audio/mpeg",
+            "title": "Mimetype",
+            "default": "audio/mpeg"
+          },
+          "cached": {
+            "type": "boolean",
+            "title": "Cached"
+          },
+          "voice": {
+            "type": "string",
+            "title": "Voice"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "assetId",
+          "cached",
+          "voice"
+        ],
+        "title": "SynthesisResult"
+      },
+      "TranscriptionResult": {
+        "properties": {
+          "text": {
+            "type": "string",
+            "title": "Text"
+          },
+          "audioMetrics": {
+            "$ref": "#/components/schemas/AudioMetrics"
+          },
+          "provider": {
+            "type": "string",
+            "const": "openai",
+            "title": "Provider"
+          },
+          "editable": {
+            "type": "boolean",
+            "const": true,
+            "title": "Editable",
+            "default": true
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "text",
+          "audioMetrics",
+          "provider"
+        ],
+        "title": "TranscriptionResult"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    },
+    "securitySchemes": {
+      "APIKeyHeader": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-AI-Service-Token"
+      }
+    }
+  }
+}
