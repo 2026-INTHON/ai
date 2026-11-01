@@ -27,7 +27,7 @@ from . import providers, images
 from .schemas import Model
 
 FONT=Path(__file__).parent/'assets/fonts/NotoSansKR.ttf'
-_render_lock=asyncio.Lock()
+_render_locks={'video':asyncio.Lock(),'pdf':asyncio.Lock()}
 
 class ReplayFrame(Model):
     speaker: Literal['npc','learner','score']
@@ -163,11 +163,13 @@ def render_video(request,path,assets):
                 track.writeframesraw(pcm)
                 track.writeframesraw(b'\0'*max(0,int(duration*24000)*2-len(pcm)))
                 for im in pages:
-                    name=f'frame-{count:04}.png';im.save(temp/name);count+=1
+                    name=f'frame-{count:04}.png';im.save(temp/name,compress_level=1);count+=1
                     manifest += [f"file '{name}'",f'duration {duration/len(pages):.6f}']
         manifest += [f"file 'frame-{count-1:04}.png'"]
         (temp/'frames.txt').write_text('\n'.join(manifest),encoding='utf-8')
-        command(['ffmpeg','-v','error','-y','-f','concat','-safe','1','-i',str(temp/'frames.txt'),'-i',str(temp/'audio.wav'),'-t',str(total),'-vf','fps=12','-c:v','libx264','-preset','veryfast','-crf','24','-pix_fmt','yuv420p','-threads','1','-c:a','aac','-b:a','64k','-movflags','+faststart',str(path)],220)
+        # Scene cards are still images; six frames/s keeps transitions within 167ms
+        # while avoiding encoding twelve copies of the same screen every second.
+        command(['ffmpeg','-v','error','-y','-f','concat','-safe','1','-i',str(temp/'frames.txt'),'-i',str(temp/'audio.wav'),'-t',str(total),'-vf','fps=6','-c:v','libx264','-preset','veryfast','-crf','24','-pix_fmt','yuv420p','-threads','1','-c:a','aac','-b:a','64k','-movflags','+faststart',str(path)],220)
         return round(total,2)
 
 def render_pdf(request,path):
@@ -185,14 +187,21 @@ def render_pdf(request,path):
     SimpleDocTemplate(str(path),pagesize=(595,842),rightMargin=42,leftMargin=42,topMargin=42,bottomMargin=42,title=request.title,author='Malo').build(flow,onFirstPage=footer,onLaterPages=footer)
 
 async def render(request:ExportRequest):
-    digest=hashlib.sha256(('replay-v2:'+request.model_dump_json()).encode()).hexdigest()[:40]
+    digest=hashlib.sha256(('replay-v3:'+request.model_dump_json()).encode()).hexdigest()[:40]
     asset=f'e_{digest}.'+('mp4' if request.format=='video' else 'pdf');path=file_path(asset)
-    async with _render_lock:
+    # A PDF must not wait for a multi-minute video. Keep duplicate work serialized
+    # within each format so retries cannot race the same output file.
+    async with _render_locks[request.format]:
         if not path.is_file():
             path.parent.mkdir(parents=True,exist_ok=True)
             if shutil.disk_usage(path.parent).free<500*1024*1024:raise HTTPException(507,{'code':'EXPORT_STORAGE_FULL','message':'내보내기 저장 공간이 부족해요.','retryable':True})
             urls={f.imageUrl for f in request.frames if f.imageUrl}|({request.backgroundUrl} if request.backgroundUrl else set())
-            assets={url:await image_bytes(url) for url in urls} if request.format=='video' else {}
+            assets={}
+            if request.format=='video':
+                semaphore=asyncio.Semaphore(4)
+                async def load(url):
+                    async with semaphore:return url,await image_bytes(url)
+                assets=dict(await asyncio.gather(*(load(url) for url in urls)))
             temporary=path.with_name(path.stem+'.pending'+path.suffix)
             try:
                 duration=await asyncio.to_thread(render_video,request,temporary,assets) if request.format=='video' else None
