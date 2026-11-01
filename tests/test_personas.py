@@ -43,7 +43,8 @@ class PersonaTests(unittest.TestCase):
             asyncio.run(evaluate(request))
             payload,instruction=llm.call_args.args[1:]
             self.assertEqual(payload['persona']['profile']['likes'],['독립서점'])
-            self.assertEqual(payload['personaGuidance'],persona['dialogueRules'])
+            self.assertEqual(payload['persona']['dialogueRules'],persona['dialogueRules'])
+            self.assertNotIn('personaGuidance',payload)
             self.assertIn('Preferences are not correctness criteria',instruction)
             self.assertIn('first meeting',instruction)
             # Old sessions may still contain polite-padding scaffolds; the live policy must override that style.
@@ -64,4 +65,5 @@ class PersonaTests(unittest.TestCase):
                 with patch('malo_ai.providers.json_completion',new_callable=AsyncMock,return_value=(result,'test')) as llm:
                     grade,_=asyncio.run(evaluate(request))
                     self.assertEqual(grade.npcSpeechLevel,expected)
-                    self.assertEqual(len(llm.call_args.args[1]['history']),10)
+                    self.assertEqual(llm.call_args.args[1]['history'],
+                                     [line for turn in history for line in [['learner',turn['user']],['npc',turn['npc']]]])
