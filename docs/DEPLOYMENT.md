@@ -1,5 +1,9 @@
 # Development and deployment
 
+Speech assets are indexed in the private persistent AI volume at `/data/speech-cache.db`. `speech_assets` stores normalized text, provider, model, voice ID and effective synthesis settings; `speech_tags` links character, personality, emotion, reaction, recovery stage, pack and speed. Match the effective voice settings before calling a paid provider. Existing `selected-voice-v2` MP3s are adopted without regeneration; older incompatible narrator voices are not substituted. Cache hits bypass quota reservations. Missing files are regenerated on demand.
+
+The service-authenticated `POST /v1/speech/cache/index` accepts up to 500 known synthesis requests and indexes existing files only; it cannot generate or spend credits. `GET /v1/speech/cache/stats` returns counts by voice without utterance text. These internal endpoints are not public FE catalog APIs. Runtime Typecast limit is 20,000 new characters per Korea calendar day; provider account credit limits still apply.
+
 `feat/*` → PR to `develop` → checks → merge → release PR to `main` → checks → verified GitHub Release → VM deployment (within about 1 minute plus build time).
 
 - `main`: production. `develop`: default integration branch. Use `feat/<topic>` for new features and `fix/<topic>` for fixes.

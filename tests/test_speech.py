@@ -18,19 +18,26 @@ class SpeechTests(unittest.IsolatedAsyncioTestCase):
             'professor':{'calm':'tc_684a7a1446e2a628b5b07230','strict':'tc_68413e12459cfdf27b481183','playful':'tc_63622aa127f06f51e93a873c'},
         }
         with tempfile.TemporaryDirectory() as tmp,patch('malo_ai.providers.DATA_DIR',Path(tmp)),patch.dict('os.environ',{'TYPECAST_API_KEY':'test-key','TYPECAST_VOICE_CALM':'old-voice'},clear=True),patch('httpx.AsyncClient.post',new_callable=AsyncMock,return_value=response) as post:
-            ids=set()
+            ids=set();payloads={}
             for character,profiles in voices.items():
                 for personality,voice in profiles.items():
                     for emotion,reaction,preset in [('neutral',None,'toneup' if personality=='playful' else 'normal'),('happy',None,'happy'),('angry',None,'angry'),('sad','sobbing','sad'),('angry','contempt','tonedown'),('confused',None,'tonedown')]:
                         request=SynthesisRequest(text='그렇게 말씀하셨군요.',characterId=character,personalityId=personality,emotion=emotion,reaction=reaction)
+                        before=post.await_count
                         result=await synthesize(request)
-                        self.assertEqual(result['voice'],voice);self.assertFalse(result['cached']);self.assertNotIn(result['assetId'],ids);ids.add(result['assetId'])
+                        self.assertEqual(result['voice'],voice)
+                        if result['assetId'] in ids:
+                            self.assertTrue(result['cached']);self.assertEqual(post.await_count,before)
+                        else:
+                            self.assertFalse(result['cached']);self.assertEqual(post.await_count,before+1)
+                            payloads[result['assetId']]=post.call_args.kwargs['json']
+                        ids.add(result['assetId'])
                         if character=='girlfriend' and reaction=='contempt':preset='normal'
-                        payload=post.call_args.kwargs['json'];self.assertEqual(payload['voice_id'],voice);self.assertEqual(payload['prompt']['emotion_preset'],preset)
+                        payload=payloads[result['assetId']];self.assertEqual(payload['voice_id'],voice);self.assertEqual(payload['prompt']['emotion_preset'],preset)
                         if character=='girlfriend' and emotion=='angry' and reaction is None:
                             self.assertLess(payload['prompt']['emotion_intensity'],.6)
                         self.assertTrue((await synthesize(request))['cached'])
-            self.assertEqual(post.await_count,36)
+            self.assertEqual(post.await_count,len(ids));self.assertLess(len(ids),36)
 
     async def test_typecast_uses_catalogued_young_female_conversation_voices_and_emotional_presets(self):
         response=httpx.Response(200,content=b'ID3'+bytes(100),request=httpx.Request('POST','https://api.typecast.ai/v1/text-to-speech'))
