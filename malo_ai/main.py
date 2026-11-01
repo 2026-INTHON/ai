@@ -11,7 +11,8 @@ from fastapi import Depends, FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.security import APIKeyHeader
 
-from . import audio, providers, images, chapters, realtime, subtitles, reports, exports
+from . import audio, providers, images, chapters, realtime, subtitles, reports, exports, speech_cache
+from pydantic import BaseModel,Field
 from .schemas import Evaluation, EvaluationRequest, HintRequest, HintResult, ScenarioRequest, ScenarioResult, SynthesisRequest, SynthesisResult, TranscriptionResult, PersonaImageRequest, PersonaImageResult
 
 app = FastAPI(title="Malo AI Pipeline", version="0.1.0", root_path=os.getenv("MALO_AI_ROOT_PATH", ""),
@@ -125,6 +126,20 @@ async def transcribe(file: Annotated[UploadFile, File()], pack: Annotated[str, F
 @app.post("/v1/speech/synthesize", response_model=SynthesisResult, dependencies=[Depends(authorize)], tags=["TTS"])
 async def synthesize(request: SynthesisRequest):
     return await providers.synthesize(request)
+
+class SpeechCacheIndex(BaseModel):
+    requests:list[SynthesisRequest]=Field(max_length=500)
+
+@app.post('/v1/speech/cache/index',dependencies=[Depends(authorize)],tags=['TTS'])
+async def index_speech_cache(request:SpeechCacheIndex):
+    matched=0
+    for item in request.requests:
+        if await providers.synthesize(item,cache_only=True):matched+=1
+    return {'matched':matched,'unmatched':len(request.requests)-matched}
+
+@app.get('/v1/speech/cache/stats',dependencies=[Depends(authorize)],tags=['TTS'])
+def speech_cache_stats():
+    return speech_cache.stats(providers.DATA_DIR)
 
 
 @app.get("/v1/audio/{asset_id}", dependencies=[Depends(authorize)], tags=["TTS"])

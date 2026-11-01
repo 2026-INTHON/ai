@@ -6,6 +6,7 @@ import os
 import re
 import sqlite3
 import time
+import unicodedata
 from contextlib import closing
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -16,6 +17,7 @@ from pydantic import BaseModel, create_model
 
 from .schemas import EvaluationRequest, Grade, Scenario, ScenarioRequest, SynthesisRequest
 from .learning_policy import DIALOGUE_STYLE
+from . import speech_cache
 
 # Generate the character's response before learner corrections, so a suggested
 # learner sentence is not accidentally continued as the NPC's own dialogue.
@@ -333,38 +335,45 @@ def typecast_voice(request: SynthesisRequest):
     return voice,{'emotion_type':'preset','emotion_preset':preset,'emotion_intensity':intensity},round(tempo,3)
 
 
-async def synthesize(request: SynthesisRequest):
+async def synthesize(request: SynthesisRequest, *, cache_only: bool = False):
     global _last_tts_call
     expressive = request.characterId in {'girlfriend','professor'}
     provider=os.getenv('MALO_'+request.characterId.upper()+'_TTS_PROVIDER','typecast') if expressive else 'azure'
     if provider not in {'typecast','openai','azure'}:
         raise HTTPException(503, {'code':'TTS_NOT_CONFIGURED','message':'캐릭터 음성 설정을 확인해 주세요.','retryable':True})
-    key = os.getenv({'typecast':'TYPECAST_API_KEY','openai':'OPENAI_API_KEY','azure':'AZURE_SPEECH_KEY'}[provider])
-    if not key:
-        raise HTTPException(503, {"code": "TTS_NOT_CONFIGURED", "message": "캐릭터 음성 API 설정이 필요해요.", "retryable": True})
     model = os.getenv('TYPECAST_TTS_MODEL','ssfm-v31') if provider=='typecast' else os.getenv("OPENAI_TTS_MODEL", "gpt-4o-mini-tts") if provider=='openai' else "azure-neural"
     if provider=='typecast':
         voice,prompt,tempo=typecast_voice(request)
         instructions=json.dumps([prompt,tempo],sort_keys=True)
     else:
         voice, instructions = girlfriend_voice(request) if provider=='openai' else (("ko-KR-InJoonNeural" if request.pack == "ko" else "en-US-JennyNeural"), "")
-    digest = hashlib.sha256(json.dumps(["selected-voice-v2", provider, model, request.pack, request.characterId, request.text, voice, request.personalityId, request.emotion, request.reaction, instructions, request.speed], ensure_ascii=False).encode()).hexdigest()[:40]
-    asset_id = "a_" + digest
+    legacy_id = 'a_'+hashlib.sha256(json.dumps(["selected-voice-v2", provider, model, request.pack, request.characterId, request.text, voice, request.personalityId, request.emotion, request.reaction, instructions, request.speed], ensure_ascii=False).encode()).hexdigest()[:40]
+    clean_text = ' '.join(unicodedata.normalize('NFC',re.sub(r"[\x00-\x08\x0b\x0c\x0e-\x1f]", "", request.text)).split())
+    config={'revision':'selected-voice-v2','provider':provider,'model':model,'pack':request.pack,'text':clean_text,'voice':voice,'instructions':instructions,'speed':float(request.speed),'azureStyle':request.emotion if provider=='azure' and request.pack=='en' else None}
+    cache_key=hashlib.sha256(json.dumps(config,ensure_ascii=False,sort_keys=True).encode()).hexdigest()
+    asset_id = 'a_'+cache_key[:40]
+    def cached_asset():
+        found=speech_cache.find(DATA_DIR,cache_key)
+        if not found:
+            found=next((asset for asset in (asset_id,legacy_id) if (DATA_DIR/'audio'/(asset+'.mp3')).is_file()),None)
+        if found:speech_cache.remember(DATA_DIR,cache_key,found,config,request,True)
+        return {'assetId':found,'cached':True,'voice':voice} if found else None
+    if hit:=cached_asset():return hit
+    if cache_only:return None  # Backfill must never spend credits or synthesize missing variants.
+    key = os.getenv({'typecast':'TYPECAST_API_KEY','openai':'OPENAI_API_KEY','azure':'AZURE_SPEECH_KEY'}[provider])
+    if not key:
+        raise HTTPException(503, {"code": "TTS_NOT_CONFIGURED", "message": "캐릭터 음성 API 설정이 필요해요.", "retryable": True})
     path = DATA_DIR / "audio" / (asset_id + ".mp3")
-    if path.exists():
-        return {"assetId": asset_id, "cached": True, "voice": voice}
     # ponytail: One Uvicorn worker for the demo. Use a shared limiter before scaling workers.
     async with _tts_lock:
-        if path.exists():
-            return {"assetId": asset_id, "cached": True, "voice": voice}
-        reserve_quota("tts_characters", len(request.text), int(os.getenv("MALO_TTS_DAILY_CHAR_LIMIT", "200000")))
+        if hit:=cached_asset():return hit
+        reserve_quota("tts_characters", len(clean_text), int(os.getenv("MALO_TTS_DAILY_CHAR_LIMIT", "200000")))
         if provider=='typecast':
-            reserve_quota('typecast_tts_characters',len(request.text),int(os.getenv('MALO_TYPECAST_TTS_DAILY_CHAR_LIMIT','4000')))
+            reserve_quota('typecast_tts_characters',len(clean_text),int(os.getenv('MALO_TYPECAST_TTS_DAILY_CHAR_LIMIT','20000')))
         elif provider=='openai':
             reserve_quota("openai_tts_characters", len(request.text), int(os.getenv("MALO_OPENAI_TTS_DAILY_CHAR_LIMIT", "8000")))
         else:
             await asyncio.sleep(max(0, 3.1 - (time.monotonic() - _last_tts_call)))
-        clean_text = re.sub(r"[\x00-\x08\x0b\x0c\x0e-\x1f]", "", request.text)
         inner = f'<prosody rate="{round((request.speed - 1) * 100):+d}%">{html.escape(clean_text)}</prosody>'
         style = {"happy": "cheerful", "sad": "sad", "angry": "angry"}.get(request.emotion)
         if request.pack == "en" and style:
@@ -391,6 +400,7 @@ async def synthesize(request: SynthesisRequest):
             temporary = path.with_suffix(".tmp")
             temporary.write_bytes(response.content)
             temporary.replace(path)
+            speech_cache.remember(DATA_DIR,cache_key,asset_id,config,request,False)
             return {"assetId": asset_id, "cached": False, "voice": voice}
         except httpx.HTTPError as exc:
             raise HTTPException(502, {"code": "TTS_UNAVAILABLE", "message": "음성을 불러오지 못했어요. 자막으로 계속할 수 있어요.", "retryable": True}) from exc
