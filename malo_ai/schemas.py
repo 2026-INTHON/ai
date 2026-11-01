@@ -154,6 +154,12 @@ class AffectState(Model):
     stage: Literal['hurt', 'guarded', 'softening']
 
 
+class DialogueTurn(Model):
+    user: str = Field(max_length=1200)
+    npc: str = Field(max_length=2000)
+    prompt: str | None = Field(default=None, max_length=2000)
+
+
 class EvaluationRequest(Model):
     affect: AffectState | None = None
     repair: DialogueRepair | None = None
@@ -166,7 +172,7 @@ class EvaluationRequest(Model):
     situation: str = Field(min_length=1, max_length=800)
     node: SceneNode
     text: str = Field(min_length=1, max_length=1200)
-    history: list[dict[str, str]] = Field(default_factory=list, max_length=12)
+    history: list[DialogueTurn] = Field(default_factory=list, max_length=100)
     audioMetrics: AudioMetrics | None = None
     allowedRoutes: list[str] = Field(default_factory=list, max_length=2)
     allowedEndings: list[str] = Field(default_factory=list, max_length=3)

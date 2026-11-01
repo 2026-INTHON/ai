@@ -1333,6 +1333,39 @@
         ],
         "title": "DialogueRepair"
       },
+      "DialogueTurn": {
+        "properties": {
+          "user": {
+            "type": "string",
+            "maxLength": 1200,
+            "title": "User"
+          },
+          "npc": {
+            "type": "string",
+            "maxLength": 2000,
+            "title": "Npc"
+          },
+          "prompt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Prompt"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "user",
+          "npc"
+        ],
+        "title": "DialogueTurn"
+      },
       "Evaluation": {
         "properties": {
           "offenseSeverity": {
@@ -1709,13 +1742,10 @@
           },
           "history": {
             "items": {
-              "additionalProperties": {
-                "type": "string"
-              },
-              "type": "object"
+              "$ref": "#/components/schemas/DialogueTurn"
             },
             "type": "array",
-            "maxItems": 12,
+            "maxItems": 100,
             "title": "History"
           },
           "audioMetrics": {
