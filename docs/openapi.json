@@ -608,6 +608,74 @@
         ]
       }
     },
+    "/v1/speech/cache/index": {
+      "post": {
+        "tags": [
+          "TTS"
+        ],
+        "summary": "Index Speech Cache",
+        "operationId": "index_speech_cache_v1_speech_cache_index_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SpeechCacheIndex"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ]
+      }
+    },
+    "/v1/speech/cache/stats": {
+      "get": {
+        "tags": [
+          "TTS"
+        ],
+        "summary": "Speech Cache Stats",
+        "operationId": "speech_cache_stats_v1_speech_cache_stats_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ]
+      }
+    },
     "/v1/audio/{asset_id}": {
       "get": {
         "tags": [
@@ -2755,6 +2823,23 @@
           "nextNodeId"
         ],
         "title": "SceneNode"
+      },
+      "SpeechCacheIndex": {
+        "properties": {
+          "requests": {
+            "items": {
+              "$ref": "#/components/schemas/SynthesisRequest"
+            },
+            "type": "array",
+            "maxItems": 500,
+            "title": "Requests"
+          }
+        },
+        "type": "object",
+        "required": [
+          "requests"
+        ],
+        "title": "SpeechCacheIndex"
       },
       "SynthesisRequest": {
         "properties": {
