@@ -2,6 +2,7 @@ import asyncio
 import io
 import tempfile
 import unittest
+import threading
 from pathlib import Path
 from unittest.mock import patch
 from fastapi import HTTPException
@@ -11,6 +12,25 @@ from malo_ai.providers import typecast_voice
 from malo_ai.schemas import SynthesisRequest
 
 class ExportTests(unittest.TestCase):
+    def test_pdf_does_not_wait_for_video_and_duplicate_video_renders_once(self):
+        async def run():
+            started=threading.Event();release=threading.Event();calls=[]
+            def video(request,path,assets):
+                calls.append('video');started.set();release.wait(5);path.write_bytes(b'video');return 10
+            def pdf(request,path):
+                calls.append('pdf');path.write_bytes(b'%PDF')
+            request=exports.ExportRequest(exportId='12345678-1234-1234-1234-123456789012',format='video',title='Replay')
+            with tempfile.TemporaryDirectory() as tmp,patch.object(exports.providers,'DATA_DIR',Path(tmp)),patch.object(exports,'render_video',video),patch.object(exports,'render_pdf',pdf),patch.object(exports,'_render_locks',{'video':asyncio.Lock(),'pdf':asyncio.Lock()}):
+                first=asyncio.create_task(exports.render(request));duplicate=asyncio.create_task(exports.render(request))
+                try:
+                    await asyncio.to_thread(started.wait,2)
+                    result=await asyncio.wait_for(exports.render(request.model_copy(update={'format':'pdf'})),1)
+                    self.assertEqual(result['mimeType'],'application/pdf');self.assertFalse(first.done())
+                finally:release.set()
+                a,b=await asyncio.gather(first,duplicate)
+                self.assertEqual(a,b);self.assertEqual(calls.count('video'),1)
+        asyncio.run(run())
+
     def test_english_captions_wrap_at_word_boundaries(self):
         font=exports.ImageFont.truetype(str(exports.FONT),25)
         text='When can you submit the assignment?'
